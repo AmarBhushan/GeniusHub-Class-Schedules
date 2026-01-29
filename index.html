@@ -30,9 +30,18 @@
             padding-bottom: env(safe-area-inset-bottom);
         }
 
-        /* Status Colors */
-        .status-available { background-color: #f0fdf4; border-color: #bbf7d0; color: #166534; }
-        .status-booked { background-color: #eef2ff; border-color: #c7d2fe; color: #3730a3; }
+        /* Time-based Colors for Available Slots */
+        /* Morning: 12 AM - 12 PM (Sky/Teal) */
+        .time-morning { background-color: #f0f9ff; border-color: #bae6fd; color: #0369a1; }
+        
+        /* Afternoon: 12 PM - 8 PM (Warm Amber) */
+        .time-afternoon { background-color: #fffbeb; border-color: #fde68a; color: #92400e; }
+        
+        /* Night: 8 PM - 12 AM (Cool Slate/Gray) */
+        .time-night { background-color: #f1f5f9; border-color: #cbd5e1; color: #334155; }
+
+        /* Booked Override */
+        .status-booked { background-color: #eef2ff !important; border-color: #c7d2fe !important; color: #3730a3 !important; }
         
         .custom-scrollbar::-webkit-scrollbar {
             width: 4px;
@@ -48,9 +57,13 @@
             z-index: 100;
         }
 
-        /* Safe Area Padding for Header */
+        /* Safe Area Padding for Header - Increased for Notch */
         .safe-top {
-            padding-top: max(1.5rem, env(safe-area-inset-top) + 1rem);
+            padding-top: max(3.5rem, env(safe-area-inset-top) + 2rem);
+        }
+        
+        .safe-bottom {
+            padding-bottom: max(1.5rem, env(safe-area-inset-bottom) + 1rem);
         }
     </style>
 </head>
@@ -144,7 +157,7 @@
 
     <div id="main-container" class="max-w-md mx-auto bg-white min-h-screen shadow-2xl flex flex-col">
         
-        <!-- Header with Safe Area support -->
+        <!-- Header with Increased Safe Area support -->
         <header class="bg-indigo-700 p-6 safe-top text-white flex justify-between items-center rounded-b-[2rem] shadow-lg sticky top-0 z-50">
             <h1 class="text-2xl font-bold tracking-tight">GeniusHub Classes</h1>
             <button onclick="openSettingsModal()" class="p-3 bg-white/10 rounded-2xl hover:bg-white/20 transition-colors">
@@ -163,17 +176,23 @@
                 </div>
             </div>
 
-            <div class="flex items-center justify-between px-1">
+            <div class="text-center pt-2">
                 <div class="text-xs text-slate-400 font-medium">
-                    IST: <span id="current-ist-clock" class="font-mono font-bold text-indigo-600">--:--</span>
+                    Current IST: <span id="current-ist-clock" class="font-mono font-bold text-indigo-600">--:--</span>
                 </div>
-                <button onclick="openResetModal()" class="text-[10px] text-red-500 font-bold uppercase tracking-tighter">Reset Week</button>
             </div>
         </div>
 
         <!-- Schedule Grid -->
-        <div id="schedule-container" class="flex-grow p-4 space-y-8 pb-10 custom-scrollbar overflow-y-auto">
+        <div id="schedule-container" class="flex-grow p-4 space-y-8 pb-4 custom-scrollbar overflow-y-auto">
         </div>
+
+        <!-- Footer for Reset -->
+        <footer class="p-6 safe-bottom border-t border-slate-200 bg-white rounded-t-[2rem] shadow-[0_-4px_20px_rgba(0,0,0,0.05)] mt-auto">
+            <button onclick="openResetModal()" class="w-full py-4 text-xs text-red-500 font-bold uppercase tracking-widest bg-red-50 rounded-2xl hover:bg-red-100 transition-colors">
+                Reset Weekly Schedule
+            </button>
+        </footer>
     </div>
 
     <!-- Reset Confirmation -->
@@ -192,7 +211,7 @@
         const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
         
         let config = {
-            slots: ["04:30", "05:30", "06:30", "07:30"],
+            slots: ["04:30", "05:30", "06:30", "07:30", "18:00", "20:00"], // Added sample times for testing
             timezones: [
                 { label: "India (IST)", value: "Asia/Kolkata" },
                 { label: "USA (East Coast)", value: "America/New_York" },
@@ -435,8 +454,9 @@
 
                 (schedule[mentorDay] || []).forEach((slot, index) => {
                     const [h, m] = slot.ist.split(':');
+                    const hour = parseInt(h);
                     const refDate = getReferenceDate(dayIndex);
-                    refDate.setHours(parseInt(h), parseInt(m), 0, 0);
+                    refDate.setHours(hour, parseInt(m), 0, 0);
 
                     // 1. Time based on the Global Preview Selector (View Time)
                     const viewDayName = refDate.toLocaleDateString('en-US', { timeZone: viewTz, weekday: 'long' });
@@ -450,8 +470,21 @@
                         studentSpecificTimeStr = refDate.toLocaleTimeString('en-US', { timeZone: slot.studentTz, hour: 'numeric', minute: '2-digit', hour12: true });
                     }
 
+                    // Determine Time Period Class
+                    let timeClass = 'time-morning';
+                    let periodLabel = 'Morning';
+                    
+                    if (hour >= 12 && hour < 20) {
+                        timeClass = 'time-afternoon';
+                        periodLabel = 'Afternoon';
+                    } else if (hour >= 20) {
+                        timeClass = 'time-night';
+                        periodLabel = 'Night';
+                    }
+
                     const btn = document.createElement('div');
-                    btn.className = `p-5 rounded-[2rem] border-2 transition-all flex flex-col gap-3 cursor-pointer status-${slot.status} shadow-sm active:scale-[0.98]`;
+                    // Add both the time class and the status booked class. CSS !important ensures booked color overrides time color if needed
+                    btn.className = `p-5 rounded-[2rem] border-2 transition-all flex flex-col gap-3 cursor-pointer ${timeClass} status-${slot.status} shadow-sm active:scale-[0.98]`;
                     
                     const isISTView = viewTz === 'Asia/Kolkata';
                     const dayDifference = viewDayName !== mentorDay;
@@ -464,7 +497,7 @@
                                 ${dayDifference ? `<span class="mt-1 text-[9px] font-black text-indigo-600 uppercase">Day Shifted: ${viewDayName}</span>` : ''}
                             </div>
                             <div class="text-right flex flex-col items-end">
-                                <span class="text-[9px] uppercase font-black px-2 py-0.5 rounded-full bg-white/50 mb-1">${slot.status}</span>
+                                <span class="text-[9px] uppercase font-black px-2 py-0.5 rounded-full bg-white/50 mb-1">${slot.status === 'booked' ? 'Booked' : periodLabel}</span>
                                 <span class="text-xs font-bold opacity-60">IST: ${slot.ist}</span>
                             </div>
                         </div>
@@ -479,8 +512,8 @@
                                 ${slot.note ? `<span class="text-[10px] italic text-slate-500 bg-white/40 p-1.5 rounded-lg mt-1">${slot.note}</span>` : ''}
                             </div>
                         ` : `
-                            <div class="pt-2 text-center text-[10px] font-bold uppercase tracking-widest text-green-600/50 italic">
-                                — Available Slot —
+                            <div class="pt-2 text-center text-[10px] font-bold uppercase tracking-widest opacity-60 italic">
+                                — Available —
                             </div>
                         `}
                     `;
