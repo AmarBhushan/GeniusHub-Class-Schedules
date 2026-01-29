@@ -2,8 +2,23 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>GeniusHub Scheduler</title>
+    
+    <!-- PWA & Mobile Configuration -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="GeniusHub">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#4338ca">
+
+    <!-- Embedded Icon (SVG Data URI) for Home Screen -->
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='120' fill='%234338ca'/%3E%3Cpath d='M160 140h192c11 0 20 9 20 20v32c0 11-9 20-20 20h-22v100h20c11 0 20 9 20 20v32c0 11-9 20-20 20h-20v40c0 11-9 20-20 20h-32c-11 0-20-9-20-20v-40h-80v40c0 11-9 20-20 20h-32c-11 0-20-9-20-20v-40h-20c-11 0-20-9-20-20v-32c0-11 9-20 20-20h20V212h-22c-11 0-20-9-20-20v-32c0-11 9-20 20-20h192z' fill='white' fill-opacity='0.2'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-family='sans-serif' font-weight='bold' font-size='220' fill='white'%3EGH%3C/text%3E%3C/svg%3E">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='120' fill='%234338ca'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-family='sans-serif' font-weight='bold' font-size='220' fill='white'%3EGH%3C/text%3E%3C/svg%3E">
+
+    <!-- Embedded Manifest for Android -->
+    <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjoiR2VuaXVzSHViIFNjaGVkdWxlciIsInNob3J0X25hbWUiOiJHZW5pdXNIdWIiLCJzdGFydF91cmwiOiIuLyIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiNmZmZmZmYiLCJ0aGVtZV9jb2xvciI6IiM0MzM4Y2EifQ==">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
@@ -11,14 +26,21 @@
         body {
             font-family: 'Inter', sans-serif;
             -webkit-tap-highlight-color: transparent;
+            /* Safe area handling for iPhone X+ */
+            padding-bottom: env(safe-area-inset-bottom);
         }
 
+        /* Status Colors */
         .status-available { background-color: #f0fdf4; border-color: #bbf7d0; color: #166534; }
-        .status-booked-weekly { background-color: #eef2ff; border-color: #c7d2fe; color: #3730a3; }
-        .status-booked-single { background-color: #fff7ed; border-color: #ffedd5; color: #9a3412; }
+        .status-booked { background-color: #eef2ff; border-color: #c7d2fe; color: #3730a3; }
         
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #e2e8f0;
+            border-radius: 10px;
+        }
 
         .modal-overlay {
             backdrop-filter: blur(4px);
@@ -26,53 +48,44 @@
             z-index: 100;
         }
 
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
+        /* Safe Area Padding for Header */
+        .safe-top {
+            padding-top: max(1.5rem, env(safe-area-inset-top) + 1rem);
         }
     </style>
 </head>
 <body class="bg-slate-100 min-h-screen">
 
-    <!-- Modal for Booking -->
+    <!-- Modal for Booking (Name + Note + Specific Student Tz) -->
     <div id="modal-overlay" class="fixed inset-0 bg-slate-900/60 modal-overlay hidden items-center justify-center p-4">
         <div class="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl p-6 space-y-4 animate-in fade-in zoom-in duration-200">
             <div class="text-center">
                 <h3 id="modal-title" class="text-lg font-black text-slate-800">Assign Student</h3>
-                <p id="modal-subtitle" class="text-xs text-slate-500 font-medium">Select booking details</p>
+                <p class="text-xs text-slate-500 font-medium">Book this session</p>
             </div>
-            
-            <div class="space-y-4">
-                <div class="space-y-1">
-                    <label class="text-[10px] font-bold uppercase text-slate-400 ml-1">Frequency</label>
-                    <div class="flex bg-slate-100 p-1 rounded-xl">
-                        <button onclick="setFreq('weekly')" id="freq-weekly" class="flex-1 py-2 text-xs font-bold rounded-lg transition-all bg-white shadow-sm text-indigo-600">Weekly</button>
-                        <button onclick="setFreq('single')" id="freq-single" class="flex-1 py-2 text-xs font-bold rounded-lg transition-all text-slate-500">One-Time</button>
-                    </div>
-                </div>
-
+            <div class="space-y-3">
                 <div class="space-y-1">
                     <label class="text-[10px] font-bold uppercase text-slate-400 ml-1">Student Name</label>
                     <input type="text" id="student-name-input" placeholder="e.g. Rahul Sharma" 
-                        class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-indigo-500 font-bold">
+                        class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-indigo-500 transition-all font-bold">
                 </div>
                 
                 <div class="space-y-1">
                     <label class="text-[10px] font-bold uppercase text-slate-400 ml-1">Their Time Zone</label>
                     <select id="student-tz-input" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-indigo-500 font-medium text-sm">
+                        <!-- Populated by JS -->
                     </select>
                 </div>
 
                 <div class="space-y-1">
                     <label class="text-[10px] font-bold uppercase text-slate-400 ml-1">Note (Optional)</label>
-                    <input type="text" id="student-note-input" placeholder="e.g. Algebra Review" 
-                        class="w-full p-3 bg-slate-50 border-2 border-slate-100 rounded-xl outline-none focus:border-indigo-500 text-sm">
+                    <input type="text" id="student-note-input" placeholder="e.g. Calculus Basics" 
+                        class="w-full p-3 bg-slate-50 border-2 border-slate-100 rounded-xl outline-none focus:border-indigo-500 transition-all text-sm">
                 </div>
             </div>
-
             <div class="flex gap-2">
                 <button onclick="closeModal()" class="flex-1 py-3 font-bold text-slate-400 bg-slate-50 rounded-xl">Cancel</button>
-                <button onclick="saveBooking()" class="flex-1 py-3 font-bold text-white bg-indigo-600 rounded-xl shadow-lg shadow-indigo-100">Confirm</button>
+                <button onclick="saveBooking()" class="flex-1 py-3 font-bold text-white bg-indigo-600 rounded-xl shadow-lg shadow-indigo-100">Confirm Booking</button>
             </div>
         </div>
     </div>
@@ -84,149 +97,100 @@
                 <h3 class="text-xl font-black text-slate-800">Configuration</h3>
                 <button onclick="closeSettingsModal()" class="text-slate-400 p-2">✕</button>
             </div>
+            
             <div class="flex-grow overflow-y-auto p-6 space-y-8 custom-scrollbar">
                 <section class="space-y-4">
-                    <h4 class="text-xs font-black uppercase tracking-widest text-indigo-600">Daily Slots (IST)</h4>
+                    <div class="flex justify-between items-end">
+                        <h4 class="text-xs font-black uppercase tracking-widest text-indigo-600">Daily Slots (IST)</h4>
+                        <span class="text-[10px] text-slate-400">Add 24h format</span>
+                    </div>
                     <div id="settings-slots-list" class="space-y-2"></div>
                     <div class="flex gap-2">
-                        <input type="time" id="new-slot-input" class="flex-grow p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold">
+                        <input type="time" id="new-slot-input" class="flex-grow p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold">
                         <button onclick="addSlot()" class="bg-indigo-600 text-white px-6 rounded-xl font-bold">+</button>
                     </div>
                 </section>
+
                 <section class="space-y-4">
-                    <h4 class="text-xs font-black uppercase tracking-widest text-indigo-600">Global Regions</h4>
+                    <h4 class="text-xs font-black uppercase tracking-widest text-indigo-600">Manage Time Zones</h4>
                     <div id="settings-tz-list" class="space-y-2"></div>
                     <div class="space-y-2 pt-2">
-                        <input type="text" id="new-tz-label" placeholder="Label" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                        <input type="text" id="new-tz-label" placeholder="Label (e.g. New York)" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none text-sm">
                         <div class="flex gap-2">
-                            <input type="text" id="new-tz-value" placeholder="Zone ID" class="flex-grow p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono">
+                            <input type="text" id="new-tz-value" placeholder="Zone ID (e.g. America/New_York)" class="flex-grow p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none text-sm font-mono">
                             <button onclick="addTimezone()" class="bg-indigo-600 text-white px-6 rounded-xl font-bold">+</button>
                         </div>
                     </div>
                 </section>
             </div>
+
             <div class="p-4 bg-slate-50 border-t">
-                <button onclick="closeSettingsModal()" class="w-full py-4 bg-slate-900 text-white rounded-2xl font-black shadow-xl">Save Config</button>
+                <button onclick="closeSettingsModal()" class="w-full py-4 bg-slate-900 text-white rounded-2xl font-black shadow-xl">Apply Changes</button>
             </div>
         </div>
     </div>
 
-    <!-- Confirmation Modal (For Bookings) -->
+    <!-- Unbook Confirmation -->
     <div id="confirm-overlay" class="fixed inset-0 bg-slate-900/60 modal-overlay hidden items-center justify-center p-4">
         <div class="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl p-6 space-y-4 text-center">
-            <div class="w-16 h-16 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-            </div>
             <h3 id="confirm-title" class="text-lg font-black text-slate-800">Remove Booking?</h3>
-            <p id="confirm-msg" class="text-sm text-slate-500">How would you like to remove this student?</p>
-            <div class="grid grid-cols-1 gap-2 pt-2">
-                <button id="confirm-today-btn" class="w-full py-3 font-bold text-amber-600 bg-amber-50 rounded-xl hover:bg-amber-100 transition-colors">Only This Day</button>
-                <button id="confirm-always-btn" class="w-full py-3 font-bold text-white bg-red-500 rounded-xl shadow-lg shadow-red-100">Permanently (All Weeks)</button>
-                <button onclick="closeConfirmModal()" class="w-full py-3 font-bold text-slate-400">Keep It</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Generic Action Confirmation Modal (For Settings) -->
-    <div id="generic-action-overlay" class="fixed inset-0 bg-slate-900/60 modal-overlay hidden items-center justify-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl p-6 space-y-4 text-center animate-in fade-in zoom-in duration-200">
-            <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-            </div>
-            <h3 id="generic-action-title" class="text-lg font-black text-slate-800 tracking-tight">Are you sure?</h3>
-            <p id="generic-action-msg" class="text-sm text-slate-500">This action cannot be undone.</p>
+            <p id="confirm-msg" class="text-sm text-slate-500">This will make the slot available again.</p>
             <div class="flex gap-2 pt-2">
-                <button onclick="closeActionConfirmModal()" class="flex-1 py-3 font-bold text-slate-400 bg-slate-50 rounded-xl">Cancel</button>
-                <button id="generic-action-confirm-btn" class="flex-1 py-3 font-bold text-white bg-red-500 rounded-xl shadow-lg shadow-red-100">Yes, Remove</button>
+                <button onclick="closeConfirmModal()" class="flex-1 py-3 font-bold text-slate-400">Cancel</button>
+                <button id="confirm-yes-btn" class="flex-1 py-3 font-bold text-white bg-red-500 rounded-xl">Yes, Remove</button>
             </div>
         </div>
     </div>
 
     <div id="main-container" class="max-w-md mx-auto bg-white min-h-screen shadow-2xl flex flex-col">
         
-        <!-- Header -->
-        <header class="bg-indigo-700 p-6 text-white flex justify-between items-center rounded-b-[2rem] shadow-lg">
+        <!-- Header with Safe Area support -->
+        <header class="bg-indigo-700 p-6 safe-top text-white flex justify-between items-center rounded-b-[2rem] shadow-lg sticky top-0 z-50">
             <h1 class="text-2xl font-bold tracking-tight">GeniusHub Classes</h1>
-            <div class="flex gap-2">
-                <button id="view-toggle-btn" onclick="toggleMainView()" class="p-3 bg-white/10 rounded-2xl hover:bg-white/20 transition-colors">
-                    <svg id="month-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2v12a2 2 0 002 2z" /></svg>
-                    <svg id="day-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" /></svg>
-                </button>
-                <button onclick="openSettingsModal()" class="p-3 bg-white/10 rounded-2xl hover:bg-white/20 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                </button>
-            </div>
+            <button onclick="openSettingsModal()" class="p-3 bg-white/10 rounded-2xl hover:bg-white/20 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+            </button>
         </header>
 
-        <!-- Navigation Bar -->
-        <div class="p-4 bg-slate-50/80 border-b">
-            <div id="day-nav-controls" class="space-y-4">
-                <div class="flex items-center justify-between gap-2">
-                    <button onclick="changeDate(-1)" class="p-2 bg-white rounded-xl shadow-sm hover:bg-indigo-50 font-bold">◀</button>
-                    <div class="flex-grow relative">
-                        <input type="date" id="calendar-input" onchange="setDate(this.value)" class="absolute inset-0 opacity-0 cursor-pointer">
-                        <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center justify-center">
-                            <span id="display-date" class="text-sm font-black text-indigo-900 leading-none">Select Date</span>
-                            <span id="display-day" class="text-[10px] uppercase font-bold text-slate-400 mt-1 tracking-widest">---</span>
-                        </div>
-                    </div>
-                    <button onclick="changeDate(1)" class="p-2 bg-white rounded-xl shadow-sm hover:bg-indigo-50 font-bold">▶</button>
+        <!-- Global View Controls -->
+        <div id="controls" class="p-5 space-y-4">
+            <div class="space-y-2">
+                <label class="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">Preview Global Region</label>
+                <div class="relative">
+                    <select id="timezone-select" onchange="updateView()" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl shadow-sm focus:ring-2 focus:ring-indigo-500 outline-none appearance-none font-bold text-indigo-900">
+                    </select>
+                    <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">▼</div>
                 </div>
             </div>
 
-            <div id="month-nav-controls" class="hidden flex items-center justify-between gap-2">
-                <button onclick="changeMonth(-1)" class="p-2 bg-white rounded-xl shadow-sm hover:bg-indigo-50 font-bold">◀</button>
-                <div class="flex-grow bg-white p-3 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center justify-center">
-                    <span id="display-month-year" class="text-sm font-black text-indigo-900 leading-none uppercase">October 2023</span>
+            <div class="flex items-center justify-between px-1">
+                <div class="text-xs text-slate-400 font-medium">
+                    IST: <span id="current-ist-clock" class="font-mono font-bold text-indigo-600">--:--</span>
                 </div>
-                <button onclick="changeMonth(1)" class="p-2 bg-white rounded-xl shadow-sm hover:bg-indigo-50 font-bold">▶</button>
+                <button onclick="openResetModal()" class="text-[10px] text-red-500 font-bold uppercase tracking-tighter">Reset Week</button>
             </div>
         </div>
 
-        <!-- Dynamic Content Area -->
-        <div id="view-container" class="flex-grow p-4 custom-scrollbar overflow-y-auto">
-            <!-- Day View List -->
-            <div id="day-view-list" class="space-y-4 pb-10"></div>
-            
-            <!-- Month View Calendar -->
-            <div id="month-view-grid" class="hidden pb-10">
-                <div class="calendar-grid mb-2">
-                    <div class="text-center text-[10px] font-black text-slate-400 uppercase">Mon</div>
-                    <div class="text-center text-[10px] font-black text-slate-400 uppercase">Tue</div>
-                    <div class="text-center text-[10px] font-black text-slate-400 uppercase">Wed</div>
-                    <div class="text-center text-[10px] font-black text-slate-400 uppercase">Thu</div>
-                    <div class="text-center text-[10px] font-black text-slate-400 uppercase">Fri</div>
-                    <div class="text-center text-[10px] font-black text-slate-400 uppercase">Sat</div>
-                    <div class="text-center text-[10px] font-black text-slate-400 uppercase">Sun</div>
-                </div>
-                <div id="calendar-days" class="calendar-grid gap-2"></div>
-            </div>
-        </div>
-
-        <!-- Global Timezone Switcher -->
-        <div class="p-4 bg-white border-t space-y-2">
-            <div class="flex justify-between items-center px-1">
-                <label class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Preview Mode</label>
-                <div class="text-xs text-indigo-600 font-mono font-bold" id="current-ist-clock">--:--</div>
-            </div>
-            <select id="timezone-select" onchange="updateView()" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl shadow-sm font-bold text-sm outline-none">
-            </select>
+        <!-- Schedule Grid -->
+        <div id="schedule-container" class="flex-grow p-4 space-y-8 pb-10 custom-scrollbar overflow-y-auto">
         </div>
     </div>
 
-    <!-- Hidden Reset Overlay -->
+    <!-- Reset Confirmation -->
     <div id="reset-overlay" class="fixed inset-0 bg-slate-900/60 modal-overlay hidden items-center justify-center p-4">
         <div class="bg-white w-full max-sm rounded-[2rem] shadow-2xl p-6 space-y-4 text-center">
             <h3 class="text-lg font-black">Reset Week?</h3>
-            <p class="text-sm text-slate-500">Clears ALL student data.</p>
+            <p class="text-sm text-slate-500">Clears all assignments.</p>
             <div class="flex gap-2">
                 <button onclick="closeResetModal()" class="flex-1 py-3 font-bold text-slate-400">Cancel</button>
-                <button onclick="confirmReset()" class="flex-1 py-3 font-bold text-white bg-red-500 rounded-xl">Reset All</button>
+                <button onclick="confirmReset()" class="flex-1 py-3 font-bold text-white bg-red-500 rounded-xl">Reset</button>
             </div>
         </div>
     </div>
 
     <script>
+        const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        
         let config = {
             slots: ["04:30", "05:30", "06:30", "07:30"],
             timezones: [
@@ -241,365 +205,302 @@
             ]
         };
 
-        let db = { recurring: {}, singles: {} };
-        let currentView = 'day'; // 'day' or 'month'
-        let selectedDate = new Date();
-        let activeFreq = 'weekly';
-        let activeEdit = null;
+        let schedule = {};
+        let activeEdit = null; 
 
         function initData() {
-            const savedConfig = localStorage.getItem('gh_config_v8');
+            const savedConfig = localStorage.getItem('geniushub_config');
             if (savedConfig) config = JSON.parse(savedConfig);
-            const savedDb = localStorage.getItem('gh_db_v8');
-            if (savedDb) db = JSON.parse(savedDb);
-            goToToday();
-            renderSettings();
+
+            const savedSchedule = localStorage.getItem('geniushub_schedule_v6');
+            if (savedSchedule) {
+                schedule = JSON.parse(savedSchedule);
+                syncScheduleWithSlots();
+            } else {
+                rebuildSchedule();
+            }
+        }
+
+        function rebuildSchedule() {
+            schedule = {};
+            days.forEach(day => {
+                schedule[day] = config.slots.map(time => ({
+                    ist: time,
+                    status: 'available',
+                    student: '',
+                    studentTz: 'Asia/Kolkata', // Default
+                    note: ''
+                }));
+            });
+            saveData();
+        }
+
+        function syncScheduleWithSlots() {
+            days.forEach(day => {
+                const existing = schedule[day] || [];
+                schedule[day] = config.slots.map(time => {
+                    const match = existing.find(s => s.ist === time);
+                    return match || { ist: time, status: 'available', student: '', studentTz: 'Asia/Kolkata', note: '' };
+                });
+            });
+            saveData();
         }
 
         function saveData() {
-            localStorage.setItem('gh_config_v8', JSON.stringify(config));
-            localStorage.setItem('gh_db_v8', JSON.stringify(db));
+            localStorage.setItem('geniushub_config', JSON.stringify(config));
+            localStorage.setItem('geniushub_schedule_v6', JSON.stringify(schedule));
         }
 
-        function toggleMainView() {
-            currentView = currentView === 'day' ? 'month' : 'day';
-            updateView();
-        }
-
-        function setDate(dateStr) { 
-            selectedDate = new Date(dateStr); 
-            currentView = 'day';
-            updateView(); 
-        }
-
-        function changeDate(days) { 
-            selectedDate.setDate(selectedDate.getDate() + days); 
-            updateView(); 
-        }
-
-        function changeMonth(delta) {
-            selectedDate.setMonth(selectedDate.getMonth() + delta);
-            updateView();
-        }
-
-        function goToToday() { 
-            selectedDate = new Date(); 
-            updateView(); 
-        }
-
-        function updateView() {
-            const isDay = currentView === 'day';
-            
-            // Header Icons
-            document.getElementById('month-icon').classList.toggle('hidden', !isDay);
-            document.getElementById('day-icon').classList.toggle('hidden', isDay);
-            
-            // Nav Controls
-            document.getElementById('day-nav-controls').classList.toggle('hidden', !isDay);
-            document.getElementById('month-nav-controls').classList.toggle('hidden', isDay);
-            
-            // Containers
-            document.getElementById('day-view-list').classList.toggle('hidden', !isDay);
-            document.getElementById('month-view-grid').classList.toggle('hidden', isDay);
-
-            if (isDay) renderDayView();
-            else renderMonthView();
-
-            // Clock
-            document.getElementById('current-ist-clock').innerText = new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true });
-        }
-
-        function renderDayView() {
-            const dateStr = selectedDate.toISOString().split('T')[0];
-            const dayName = selectedDate.toLocaleDateString('en-US', { weekday: 'long' });
-            const viewTz = document.getElementById('timezone-select').value || 'Asia/Kolkata';
-
-            document.getElementById('display-date').innerText = selectedDate.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
-            document.getElementById('display-day').innerText = dayName;
-            document.getElementById('calendar-input').value = dateStr;
-
-            const container = document.getElementById('day-view-list');
-            container.innerHTML = '';
-
-            config.slots.forEach(time => {
-                const [h, m] = time.split(':');
-                const slotDate = new Date(selectedDate);
-                slotDate.setHours(parseInt(h), parseInt(m), 0, 0);
-
-                const viewDay = slotDate.toLocaleDateString('en-US', { timeZone: viewTz, weekday: 'long' });
-                const viewTimeStr = slotDate.toLocaleTimeString('en-US', { timeZone: viewTz, hour: 'numeric', minute: '2-digit', hour12: true });
-                const endDate = new Date(slotDate.getTime() + (60 * 60 * 1000));
-                const viewEndTimeStr = endDate.toLocaleTimeString('en-US', { timeZone: viewTz, hour: 'numeric', minute: '2-digit', hour12: true });
-
-                const singleVal = db.singles[dateStr]?.[time];
-                const recurringVal = db.recurring[dayName]?.[time];
-                
-                let booked = null;
-                let type = 'available';
-
-                if (singleVal === 'cancelled') {
-                    booked = null;
-                    type = 'cancelled';
-                } else if (singleVal) {
-                    booked = singleVal;
-                    type = 'booked-single';
-                } else if (recurringVal) {
-                    booked = recurringVal;
-                    type = 'booked-weekly';
-                }
-
-                let localStr = ""; let localDay = "";
-                if (booked) {
-                    localStr = slotDate.toLocaleTimeString('en-US', { timeZone: booked.tz, hour: 'numeric', minute: '2-digit', hour12: true });
-                    localDay = slotDate.toLocaleDateString('en-US', { timeZone: booked.tz, weekday: 'long' });
-                }
-
-                const card = document.createElement('div');
-                card.className = `p-5 rounded-[2rem] border-2 transition-all flex flex-col gap-4 cursor-pointer shadow-sm active:scale-95 ${type === 'cancelled' ? 'opacity-40 border-dashed border-slate-300' : 'status-'+type}`;
-                
-                card.innerHTML = `
-                    <div class="flex justify-between items-start">
-                        <div class="flex flex-col">
-                            <span class="text-[10px] font-bold uppercase opacity-50">Preview Time</span>
-                            <span class="text-xl font-black leading-none">${viewTimeStr} - ${viewEndTimeStr}</span>
-                        </div>
-                        <div class="text-right flex flex-col items-end">
-                            <span class="text-[8px] uppercase font-black px-2 py-0.5 rounded-full bg-white/60 mb-1 border">${type.replace('booked-', '')}</span>
-                            <span class="text-xs font-bold opacity-60">IST: ${time}</span>
-                        </div>
-                    </div>
-                    ${booked ? `
-                        <div class="pt-3 border-t border-black/5">
-                            <div class="flex justify-between items-center mb-1">
-                                <span class="text-sm font-black truncate">👤 ${booked.student}</span>
-                                <span class="text-[10px] font-bold opacity-70">${localStr} (${booked.tz.split('/').pop()})</span>
-                            </div>
-                            ${booked.note ? `<span class="text-[10px] italic opacity-60 bg-white/20 p-2 rounded-lg mt-1 block">${booked.note}</span>` : ''}
-                        </div>
-                    ` : (type === 'cancelled' ? `<div class="text-center py-1 text-[10px] font-bold opacity-40 uppercase">Skipped Today</div>` : `<div class="text-center py-1 text-[10px] font-bold opacity-30 uppercase">— Open —</div>`)}
-                `;
-                card.onclick = () => toggleStatus(time);
-                container.appendChild(card);
-            });
-        }
-
-        function renderMonthView() {
-            document.getElementById('display-month-year').innerText = selectedDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-            const grid = document.getElementById('calendar-days');
-            grid.innerHTML = '';
-
-            const year = selectedDate.getFullYear();
-            const month = selectedDate.getMonth();
-            const firstDayOfMonth = new Date(year, month, 1).getDay(); // 0 is Sunday
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-            // Adjust first day (Mon=0, Sun=6)
-            const paddingDays = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
-
-            // Empty padding slots
-            for (let i = 0; i < paddingDays; i++) {
-                const empty = document.createElement('div');
-                empty.className = "h-16";
-                grid.appendChild(empty);
-            }
-
-            // Days of the month
-            for (let day = 1; day <= daysInMonth; day++) {
-                const curDate = new Date(year, month, day);
-                const dateStr = curDate.toISOString().split('T')[0];
-                const dayName = curDate.toLocaleDateString('en-US', { weekday: 'long' });
-                
-                const hasWeekly = db.recurring[dayName] && Object.keys(db.recurring[dayName]).length > 0;
-                const hasSingle = db.singles[dateStr] && Object.values(db.singles[dateStr]).some(v => v !== 'cancelled');
-                
-                const dayDiv = document.createElement('div');
-                const isToday = new Date().toDateString() === curDate.toDateString();
-                const isSelected = selectedDate.toDateString() === curDate.toDateString();
-
-                dayDiv.className = `h-16 flex flex-col items-center justify-center rounded-2xl border-2 cursor-pointer transition-all ${isSelected ? 'border-indigo-600 bg-white shadow-md' : 'border-transparent bg-slate-50 hover:bg-white hover:border-slate-200'}`;
-                dayDiv.onclick = () => {
-                    selectedDate = curDate;
-                    currentView = 'day';
-                    updateView();
-                };
-
-                dayDiv.innerHTML = `
-                    <span class="text-sm font-black ${isToday ? 'text-indigo-600' : 'text-slate-700'}">${day}</span>
-                    <div class="flex gap-1 mt-1">
-                        ${hasWeekly ? '<div class="w-1.5 h-1.5 bg-indigo-500 rounded-full"></div>' : ''}
-                        ${hasSingle ? '<div class="w-1.5 h-1.5 bg-orange-500 rounded-full"></div>' : ''}
-                    </div>
-                `;
-                grid.appendChild(dayDiv);
-            }
-        }
-
-        // Shared Logic
-        function setFreq(freq) {
-            activeFreq = freq;
-            document.getElementById('freq-weekly').className = `flex-1 py-2 text-xs font-bold rounded-lg transition-all ${freq === 'weekly' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500'}`;
-            document.getElementById('freq-single').className = `flex-1 py-2 text-xs font-bold rounded-lg transition-all ${freq === 'single' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500'}`;
-        }
-
-        function toggleStatus(time) {
-            const dateStr = selectedDate.toISOString().split('T')[0];
-            const dayName = selectedDate.toLocaleDateString('en-US', { weekday: 'long' });
-            const single = db.singles[dateStr]?.[time];
-            const recurring = db.recurring[dayName]?.[time];
-
-            if (single === 'cancelled') {
-                delete db.singles[dateStr][time];
-                saveData(); updateView(); return;
-            }
-
-            if (single || recurring) {
-                const todayBtn = document.getElementById('confirm-today-btn');
-                const alwaysBtn = document.getElementById('confirm-always-btn');
-                if (single) {
-                    todayBtn.innerText = "Remove This Session";
-                    alwaysBtn.classList.add('hidden');
-                    openConfirmModal("Cancel Session?", `Unbook ${single.student}?`, () => { delete db.singles[dateStr][time]; saveData(); updateView(); closeConfirmModal(); });
-                } else if (recurring) {
-                    todayBtn.innerText = "Only This Date";
-                    alwaysBtn.classList.remove('hidden');
-                    alwaysBtn.innerText = "Permanently (Every " + dayName + ")";
-                    openConfirmModal("Remove Weekly?", `Student: ${recurring.student}`, () => { delete db.recurring[dayName][time]; saveData(); updateView(); closeConfirmModal(); }, () => {
-                        if (!db.singles[dateStr]) db.singles[dateStr] = {};
-                        db.singles[dateStr][time] = 'cancelled';
-                        saveData(); updateView(); closeConfirmModal();
-                    });
-                }
+        function toggleStatus(day, index) {
+            const slot = schedule[day][index];
+            if (slot.status === 'available') {
+                openBookingModal(day, index);
             } else {
-                openBookingModal(time);
+                openConfirmModal(
+                    "Cancel Booking?",
+                    `Unbook ${slot.student}?`,
+                    () => {
+                        slot.status = 'available';
+                        slot.student = '';
+                        slot.note = '';
+                        slot.studentTz = 'Asia/Kolkata';
+                        saveData();
+                        updateView();
+                        closeConfirmModal();
+                    }
+                );
             }
         }
 
-        function openBookingModal(time) {
-            activeEdit = time;
-            document.getElementById('modal-title').innerText = `@ ${time} IST`;
+        function openBookingModal(day, index) {
+            activeEdit = { day, index };
+            const slot = schedule[day][index];
+            document.getElementById('modal-title').innerText = `${day} @ ${slot.ist} IST`;
             document.getElementById('student-name-input').value = "";
             document.getElementById('student-note-input').value = "";
+            
+            // Populate student tz dropdown in modal
             const tzInput = document.getElementById('student-tz-input');
             tzInput.innerHTML = config.timezones.map(tz => `<option value="${tz.value}">${tz.label}</option>`).join('');
-            tzInput.value = document.getElementById('timezone-select').value;
+            tzInput.value = document.getElementById('timezone-select').value; // Default to current view
+
             document.getElementById('modal-overlay').classList.replace('hidden', 'flex');
-            setFreq('weekly');
+            document.getElementById('student-name-input').focus();
         }
 
-        function closeModal() { document.getElementById('modal-overlay').classList.replace('flex', 'hidden'); }
+        function closeModal() {
+            document.getElementById('modal-overlay').classList.replace('flex', 'hidden');
+            activeEdit = null;
+        }
 
         function saveBooking() {
-            const name = document.getElementById('student-name-input').value.trim();
-            const note = document.getElementById('student-note-input').value.trim();
-            const tz = document.getElementById('student-tz-input').value;
-            if (!name) return;
-            const time = activeEdit;
-            const payload = { student: name, note: note, tz: tz };
-            if (activeFreq === 'weekly') {
-                const dayName = selectedDate.toLocaleDateString('en-US', { weekday: 'long' });
-                if (!db.recurring[dayName]) db.recurring[dayName] = {};
-                db.recurring[dayName][time] = payload;
-            } else {
-                const dateStr = selectedDate.toISOString().split('T')[0];
-                if (!db.singles[dateStr]) db.singles[dateStr] = {};
-                db.singles[dateStr][time] = payload;
+            if (activeEdit) {
+                const name = document.getElementById('student-name-input').value.trim();
+                const note = document.getElementById('student-note-input').value.trim();
+                const studentTz = document.getElementById('student-tz-input').value;
+                if (!name) return;
+
+                const slot = schedule[activeEdit.day][activeEdit.index];
+                slot.status = 'booked';
+                slot.student = name;
+                slot.note = note;
+                slot.studentTz = studentTz;
+                
+                saveData();
+                closeModal();
+                updateView();
             }
-            saveData(); closeModal(); updateView();
         }
 
-        // --- Generic Action Confirmation Modal Helpers ---
-        function openActionConfirmModal(title, msg, onConfirm) {
-            document.getElementById('generic-action-title').innerText = title;
-            document.getElementById('generic-action-msg').innerText = msg;
-            document.getElementById('generic-action-confirm-btn').onclick = onConfirm;
-            document.getElementById('generic-action-overlay').classList.replace('hidden', 'flex');
-        }
-
-        function closeActionConfirmModal() {
-            document.getElementById('generic-action-overlay').classList.replace('flex', 'hidden');
-        }
-
-        // --- Modified Settings Removal Logic ---
+        // --- Settings Logic ---
         function addSlot() {
             const input = document.getElementById('new-slot-input');
-            if (input.value && !config.slots.includes(input.value)) { 
-                config.slots.push(input.value); 
-                config.slots.sort(); 
-                saveData(); 
-                renderSettings(); 
-                updateView(); 
+            const time = input.value;
+            if (time && !config.slots.includes(time)) {
+                config.slots.push(time);
+                config.slots.sort();
+                input.value = '';
+                renderSettings();
             }
         }
 
         function removeSlot(idx) {
             const slotTime = config.slots[idx];
-            openActionConfirmModal(
-                "Remove Time Slot?",
-                `Are you sure you want to remove the ${slotTime} IST slot? This will hide bookings associated with this time.`,
+            openConfirmModal(
+                "Remove Slot?",
+                `Delete ${slotTime} IST from the list?`,
                 () => {
                     config.slots.splice(idx, 1);
-                    saveData();
                     renderSettings();
-                    updateView();
-                    closeActionConfirmModal();
+                    closeConfirmModal();
                 }
             );
         }
 
         function addTimezone() {
-            const l = document.getElementById('new-tz-label');
-            const v = document.getElementById('new-tz-value');
-            if (l.value && v.value) { 
-                config.timezones.push({ label: l.value, value: v.value }); 
-                saveData(); 
-                renderSettings(); 
+            const label = document.getElementById('new-tz-label');
+            const value = document.getElementById('new-tz-value');
+            if (label.value && value.value) {
+                config.timezones.push({ label: label.value, value: value.value });
+                label.value = ''; value.value = '';
+                renderSettings();
             }
         }
 
         function removeTimezone(idx) {
-            const tz = config.timezones[idx];
-            if (config.timezones.length <= 1) return;
-            
-            openActionConfirmModal(
-                "Remove Time Zone?",
-                `Are you sure you want to remove ${tz.label} from your list?`,
-                () => {
-                    config.timezones.splice(idx, 1);
-                    saveData();
-                    renderSettings();
-                    closeActionConfirmModal();
-                }
-            );
+            if (config.timezones.length > 1) {
+                const tzName = config.timezones[idx].label;
+                openConfirmModal(
+                    "Remove Timezone?",
+                    `Delete "${tzName}"?`,
+                    () => {
+                        config.timezones.splice(idx, 1);
+                        renderSettings();
+                        closeConfirmModal();
+                    }
+                );
+            }
         }
 
         function renderSettings() {
-            document.getElementById('settings-slots-list').innerHTML = config.slots.map((s, i) => `<div class="flex justify-between items-center p-3 bg-white border rounded-xl shadow-sm"><span class="font-bold text-slate-700">${s} IST</span><button onclick="removeSlot(${i})" class="text-red-400 font-bold p-1 hover:bg-red-50 rounded-lg">✕</button></div>`).join('');
-            document.getElementById('settings-tz-list').innerHTML = config.timezones.map((tz, i) => `<div class="flex justify-between items-center p-3 bg-white border rounded-xl shadow-sm"><div><div class="text-xs font-bold text-slate-800">${tz.label}</div><div class="text-[9px] font-mono text-slate-400">${tz.value}</div></div><button onclick="removeTimezone(${i})" class="text-red-400 font-bold p-1 hover:bg-red-50 rounded-lg">✕</button></div>`).join('');
+            const slotsList = document.getElementById('settings-slots-list');
+            slotsList.innerHTML = config.slots.map((s, i) => `
+                <div class="flex justify-between items-center p-3 bg-white border rounded-xl shadow-sm">
+                    <span class="font-bold text-slate-700">${s} IST</span>
+                    <button onclick="removeSlot(${i})" class="text-red-400 font-bold p-1">✕</button>
+                </div>`).join('');
+
+            const tzList = document.getElementById('settings-tz-list');
+            tzList.innerHTML = config.timezones.map((tz, i) => `
+                <div class="flex justify-between items-center p-3 bg-white border rounded-xl shadow-sm">
+                    <div>
+                        <div class="text-xs font-bold text-slate-800">${tz.label}</div>
+                        <div class="text-[10px] text-slate-400 font-mono">${tz.value}</div>
+                    </div>
+                    <button onclick="removeTimezone(${i})" class="text-red-400 font-bold p-1">✕</button>
+                </div>`).join('');
+
             const select = document.getElementById('timezone-select');
-            const cur = select.value;
+            const currentVal = select.value;
             select.innerHTML = config.timezones.map(tz => `<option value="${tz.value}">${tz.label}</option>`).join('');
-            if (config.timezones.some(t => t.value === cur)) select.value = cur;
+            if (config.timezones.some(t => t.value === currentVal)) select.value = currentVal;
+            else if (config.timezones.length > 0) select.value = config.timezones[0].value;
         }
 
-        function openSettingsModal() { document.getElementById('settings-overlay').classList.replace('hidden', 'flex'); }
-        function closeSettingsModal() { document.getElementById('settings-overlay').classList.replace('flex', 'hidden'); }
-        
-        function openConfirmModal(title, msg, onAlways, onToday) {
+        function openSettingsModal() { 
+            renderSettings();
+            document.getElementById('settings-overlay').classList.replace('hidden', 'flex');
+        }
+
+        function closeSettingsModal() { 
+            syncScheduleWithSlots();
+            updateView();
+            document.getElementById('settings-overlay').classList.replace('flex', 'hidden');
+        }
+
+        function openConfirmModal(title, msg, onConfirm) {
             document.getElementById('confirm-title').innerText = title;
             document.getElementById('confirm-msg').innerText = msg;
-            document.getElementById('confirm-always-btn').onclick = onAlways;
-            document.getElementById('confirm-today-btn').onclick = onToday || onAlways;
+            document.getElementById('confirm-yes-btn').onclick = onConfirm;
             document.getElementById('confirm-overlay').classList.replace('hidden', 'flex');
         }
-        
         function closeConfirmModal() { document.getElementById('confirm-overlay').classList.replace('flex', 'hidden'); }
 
         function openResetModal() { document.getElementById('reset-overlay').classList.replace('hidden', 'flex'); }
         function closeResetModal() { document.getElementById('reset-overlay').classList.replace('flex', 'hidden'); }
-        function confirmReset() { db = { recurring: {}, singles: {} }; saveData(); updateView(); closeResetModal(); }
+        function confirmReset() { rebuildSchedule(); updateView(); closeResetModal(); }
+
+        function getReferenceDate(dayIndex) {
+            const now = new Date();
+            const currentDay = now.getDay();
+            const distFromMonday = currentDay === 0 ? 6 : currentDay - 1;
+            const refDate = new Date(now);
+            refDate.setDate(now.getDate() - distFromMonday + dayIndex);
+            return refDate;
+        }
+
+        function updateView() {
+            const select = document.getElementById('timezone-select');
+            const viewTz = select.value || 'Asia/Kolkata';
+            const container = document.getElementById('schedule-container');
+            container.innerHTML = '';
+
+            days.forEach((mentorDay, dayIndex) => {
+                const daySection = document.createElement('div');
+                daySection.className = "space-y-4";
+                daySection.innerHTML = `<div class="flex items-center gap-3"><h2 class="text-sm font-black text-slate-800 uppercase tracking-widest">${mentorDay}</h2><div class="h-px flex-grow bg-slate-100"></div></div>`;
+
+                const grid = document.createElement('div');
+                grid.className = "grid grid-cols-1 gap-3";
+
+                (schedule[mentorDay] || []).forEach((slot, index) => {
+                    const [h, m] = slot.ist.split(':');
+                    const refDate = getReferenceDate(dayIndex);
+                    refDate.setHours(parseInt(h), parseInt(m), 0, 0);
+
+                    // 1. Time based on the Global Preview Selector (View Time)
+                    const viewDayName = refDate.toLocaleDateString('en-US', { timeZone: viewTz, weekday: 'long' });
+                    const viewTimeStr = refDate.toLocaleTimeString('en-US', { timeZone: viewTz, hour: 'numeric', minute: '2-digit', hour12: true });
+                    
+                    // 2. Time based on the specific Student's Timezone (if booked)
+                    let studentSpecificTimeStr = "";
+                    let studentSpecificDayName = "";
+                    if (slot.status === 'booked' && slot.studentTz) {
+                        studentSpecificDayName = refDate.toLocaleDateString('en-US', { timeZone: slot.studentTz, weekday: 'long' });
+                        studentSpecificTimeStr = refDate.toLocaleTimeString('en-US', { timeZone: slot.studentTz, hour: 'numeric', minute: '2-digit', hour12: true });
+                    }
+
+                    const btn = document.createElement('div');
+                    btn.className = `p-5 rounded-[2rem] border-2 transition-all flex flex-col gap-3 cursor-pointer status-${slot.status} shadow-sm active:scale-[0.98]`;
+                    
+                    const isISTView = viewTz === 'Asia/Kolkata';
+                    const dayDifference = viewDayName !== mentorDay;
+
+                    btn.innerHTML = `
+                        <div class="flex justify-between items-start">
+                            <div class="flex flex-col">
+                                <span class="text-[10px] font-bold uppercase opacity-50">Preview Time (${viewTz.split('/').pop()})</span>
+                                <span class="text-xl font-black leading-none">${viewTimeStr}</span>
+                                ${dayDifference ? `<span class="mt-1 text-[9px] font-black text-indigo-600 uppercase">Day Shifted: ${viewDayName}</span>` : ''}
+                            </div>
+                            <div class="text-right flex flex-col items-end">
+                                <span class="text-[9px] uppercase font-black px-2 py-0.5 rounded-full bg-white/50 mb-1">${slot.status}</span>
+                                <span class="text-xs font-bold opacity-60">IST: ${slot.ist}</span>
+                            </div>
+                        </div>
+
+                        ${slot.status === 'booked' ? `
+                            <div class="pt-3 border-t border-indigo-100/50 flex flex-col gap-1">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm font-black text-indigo-900 truncate flex-grow mr-2">👤 ${slot.student}</span>
+                                    <span class="text-[10px] font-bold text-indigo-400 whitespace-nowrap">${studentSpecificTimeStr} (${slot.studentTz.split('/').pop()})</span>
+                                </div>
+                                ${studentSpecificDayName !== mentorDay ? `<span class="text-[9px] font-bold text-amber-600 uppercase">⚠️ Their Day: ${studentSpecificDayName}</span>` : ''}
+                                ${slot.note ? `<span class="text-[10px] italic text-slate-500 bg-white/40 p-1.5 rounded-lg mt-1">${slot.note}</span>` : ''}
+                            </div>
+                        ` : `
+                            <div class="pt-2 text-center text-[10px] font-bold uppercase tracking-widest text-green-600/50 italic">
+                                — Available Slot —
+                            </div>
+                        `}
+                    `;
+                    btn.onclick = () => toggleStatus(mentorDay, index);
+                    grid.appendChild(btn);
+                });
+                daySection.appendChild(grid);
+                container.appendChild(daySection);
+            });
+
+            document.getElementById('current-ist-clock').innerText = new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true });
+        }
 
         initData();
-        setInterval(updateView, 60000);
+        renderSettings();
+        updateView();
+
+        setInterval(() => {
+            document.getElementById('current-ist-clock').innerText = new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true });
+        }, 30000);
     </script>
 </body>
 </html>
