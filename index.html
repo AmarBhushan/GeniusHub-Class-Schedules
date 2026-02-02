@@ -16,41 +16,56 @@
     <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='120' fill='%234338ca'/%3E%3Cpath d='M160 140h192c11 0 20 9 20 20v32c0 11-9 20-20 20h-22v100h20c11 0 20 9 20 20v32c0 11-9 20-20 20h-20v40c0 11-9 20-20 20h-32c-11 0-20-9-20-20v-40h-80v40c0 11-9 20-20 20h-32c-11 0-20-9-20-20v-40h-20c-11 0-20-9-20-20v-32c0-11 9-20 20-20h20V212h-22c-11 0-20-9-20-20v-32c0-11 9-20 20-20h192z' fill='white' fill-opacity='0.2'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-family='sans-serif' font-weight='bold' font-size='220' fill='white'%3EGH%3C/text%3E%3C/svg%3E">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='120' fill='%234338ca'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-family='sans-serif' font-weight='bold' font-size='220' fill='white'%3EGH%3C/text%3E%3C/svg%3E">
 
-    <!-- Embedded Manifest for Android -->
-    <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjoiR2VuaXVzSHViIFNjaGVkdWxlciIsInNob3J0X25hbWUiOiJHZW5pdXNIdWIiLCJzdGFydF91cmwiOiIuLyIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiNmZmZmZmYiLCJ0aGVtZV9jb2xvciI6IiM0MzM4Y2EifQ==">
-
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
         
         body {
             font-family: 'Inter', sans-serif;
             -webkit-tap-highlight-color: transparent;
-            /* Safe area handling for iPhone X+ */
             padding-bottom: env(safe-area-inset-bottom);
+            transition: background-color 0.5s ease;
         }
 
-        /* Time-based Colors for Available Slots - High Contrast */
-        
-        /* Morning: Fresh Green/Emerald (Distinct from Blue/Gray) */
-        .time-morning { background-color: #ecfccb; border-color: #bef264; color: #3f6212; }
-        
-        /* Afternoon: Warm Orange (Vibrant) */
-        .time-afternoon { background-color: #fff7ed; border-color: #fed7aa; color: #9a3412; }
-        
-        /* Night: Deep Slate (Darker for contrast) */
-        .time-night { background-color: #e2e8f0; border-color: #94a3b8; color: #334155; }
+        /* --- Global Body Themes (Page Background) --- */
+        .page-theme-morning { background-color: #f0f9ff; }   /* Sky 50 */
+        .page-theme-afternoon { background-color: #fffaf0; } /* Floral White/Warm */
+        .page-theme-night { background-color: #cbd5e1; }     /* Slate 300 - Distinct Grey */
 
-        /* Booked Override */
-        .status-booked { background-color: #eef2ff !important; border-color: #c7d2fe !important; color: #3730a3 !important; }
+        /* --- Card Color Themes --- */
         
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 4px;
+        /* Morning: Sky Blue/Cyan - Fresh & Cool */
+        .time-morning { 
+            background-color: #e0f2fe; /* Sky 100 */
+            border-color: #7dd3fc;    /* Sky 300 */
+            color: #0c4a6e;           /* Sky 900 */
         }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #e2e8f0;
-            border-radius: 10px;
+        
+        /* Afternoon: Amber/Orange - Warm & Sunny */
+        .time-afternoon { 
+            background-color: #fff7ed; /* Orange 50 */
+            border-color: #fdba74;    /* Orange 300 */
+            color: #9a3412;           /* Orange 800 */
         }
+        
+        /* Night: Slate/Indigo Gray - Darker & Calm */
+        .time-night { 
+            background-color: #e2e8f0; /* Slate 200 */
+            border-color: #94a3b8;    /* Slate 400 */
+            color: #334155;           /* Slate 700 */
+        }
+
+        /* Booked Override: Bright Red - Alert Color */
+        .status-booked { 
+            background-color: #fee2e2 !important; /* Red 100 */
+            border-color: #ef4444 !important;     /* Red 500 */
+            color: #991b1b !important;            /* Red 800 */
+            box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.2) !important;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 
         .modal-overlay {
             backdrop-filter: blur(4px);
@@ -58,22 +73,27 @@
             z-index: 100;
         }
 
-        /* Safe Area Padding for Header - HEAVILY Increased for PWA/Notch */
-        .safe-top {
-            /* Base 4rem padding + whatever the safe area is.
-               This ensures even if env() fails, we have 4rem buffer.
-            */
-            padding-top: max(4rem, env(safe-area-inset-top) + 2.5rem);
+        /* Reduced Safe Top Padding as requested */
+        .safe-top { 
+            padding-top: max(1.5rem, env(safe-area-inset-top) + 1rem); 
         }
         
-        .safe-bottom {
-            padding-bottom: max(1.5rem, env(safe-area-inset-bottom) + 1rem);
+        .safe-bottom { padding-bottom: max(1.5rem, env(safe-area-inset-bottom) + 1rem); }
+        
+        /* Toast Animation */
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
+        .toast-enter { animation: slideIn 0.3s ease-out forwards; }
     </style>
 </head>
-<body class="bg-slate-100 min-h-screen">
+<body id="app-body" class="bg-slate-50 min-h-screen text-slate-900">
 
-    <!-- Modal for Booking (Name + Note + Specific Student Tz) -->
+    <!-- Alarm Toast Container -->
+    <div id="toast-container" class="fixed top-4 right-4 z-[110] flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Booking Modal -->
     <div id="modal-overlay" class="fixed inset-0 bg-slate-900/60 modal-overlay hidden items-center justify-center p-4">
         <div class="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl p-6 space-y-4 animate-in fade-in zoom-in duration-200">
             <div class="text-center">
@@ -84,12 +104,12 @@
                 <div class="space-y-1">
                     <label class="text-[10px] font-bold uppercase text-slate-400 ml-1">Student Name</label>
                     <input type="text" id="student-name-input" placeholder="e.g. Rahul Sharma" 
-                        class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-indigo-500 transition-all font-bold">
+                        class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-indigo-500 transition-all font-bold text-slate-800">
                 </div>
                 
                 <div class="space-y-1">
                     <label class="text-[10px] font-bold uppercase text-slate-400 ml-1">Their Time Zone</label>
-                    <select id="student-tz-input" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-indigo-500 font-medium text-sm">
+                    <select id="student-tz-input" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-indigo-500 font-medium text-sm text-slate-800">
                         <!-- Populated by JS -->
                     </select>
                 </div>
@@ -97,12 +117,12 @@
                 <div class="space-y-1">
                     <label class="text-[10px] font-bold uppercase text-slate-400 ml-1">Note (Optional)</label>
                     <input type="text" id="student-note-input" placeholder="e.g. Calculus Basics" 
-                        class="w-full p-3 bg-slate-50 border-2 border-slate-100 rounded-xl outline-none focus:border-indigo-500 transition-all text-sm">
+                        class="w-full p-3 bg-slate-50 border-2 border-slate-100 rounded-xl outline-none focus:border-indigo-500 transition-all text-sm text-slate-800">
                 </div>
             </div>
             <div class="flex gap-2">
-                <button onclick="closeModal()" class="flex-1 py-3 font-bold text-slate-400 bg-slate-50 rounded-xl">Cancel</button>
-                <button onclick="saveBooking()" class="flex-1 py-3 font-bold text-white bg-indigo-600 rounded-xl shadow-lg shadow-indigo-100">Confirm Booking</button>
+                <button onclick="closeModal()" class="flex-1 py-3 font-bold text-slate-400 bg-slate-50 rounded-xl hover:bg-slate-100">Cancel</button>
+                <button onclick="saveBooking()" class="flex-1 py-3 font-bold text-white bg-indigo-600 rounded-xl shadow-lg shadow-indigo-100 hover:bg-indigo-700">Confirm</button>
             </div>
         </div>
     </div>
@@ -112,10 +132,17 @@
         <div class="bg-white w-full max-w-md h-[80vh] rounded-[2rem] shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
             <div class="p-6 border-b flex justify-between items-center">
                 <h3 class="text-xl font-black text-slate-800">Configuration</h3>
-                <button onclick="closeSettingsModal()" class="text-slate-400 p-2">✕</button>
+                <button onclick="closeSettingsModal()" class="text-slate-400 p-2 hover:bg-slate-100 rounded-full">✕</button>
             </div>
             
             <div class="flex-grow overflow-y-auto p-6 space-y-8 custom-scrollbar">
+                <!-- Notifications Permission -->
+                <section class="space-y-2 p-4 bg-indigo-50 rounded-2xl border border-indigo-100">
+                    <h4 class="text-xs font-black uppercase tracking-widest text-indigo-600">Alarms</h4>
+                    <p class="text-xs text-indigo-800/70 mb-2">Play sound & notify 30 mins before class.</p>
+                    <button onclick="requestNotificationAccess()" id="btn-notify-perm" class="w-full py-2 bg-indigo-600 text-white text-xs font-bold rounded-xl">Enable Notifications</button>
+                </section>
+
                 <section class="space-y-4">
                     <div class="flex justify-between items-end">
                         <h4 class="text-xs font-black uppercase tracking-widest text-indigo-600">Daily Slots (IST)</h4>
@@ -123,8 +150,8 @@
                     </div>
                     <div id="settings-slots-list" class="space-y-2"></div>
                     <div class="flex gap-2">
-                        <input type="time" id="new-slot-input" class="flex-grow p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold">
-                        <button onclick="addSlot()" class="bg-indigo-600 text-white px-6 rounded-xl font-bold">+</button>
+                        <input type="time" id="new-slot-input" class="flex-grow p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-slate-800">
+                        <button onclick="addSlot()" class="bg-indigo-600 text-white px-6 rounded-xl font-bold hover:bg-indigo-700">+</button>
                     </div>
                 </section>
 
@@ -135,46 +162,53 @@
                         <input type="text" id="new-tz-label" placeholder="Label (e.g. New York)" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none text-sm">
                         <div class="flex gap-2">
                             <input type="text" id="new-tz-value" placeholder="Zone ID (e.g. America/New_York)" class="flex-grow p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none text-sm font-mono">
-                            <button onclick="addTimezone()" class="bg-indigo-600 text-white px-6 rounded-xl font-bold">+</button>
+                            <button onclick="addTimezone()" class="bg-indigo-600 text-white px-6 rounded-xl font-bold hover:bg-indigo-700">+</button>
                         </div>
                     </div>
                 </section>
             </div>
 
             <div class="p-4 bg-slate-50 border-t">
-                <button onclick="closeSettingsModal()" class="w-full py-4 bg-slate-900 text-white rounded-2xl font-black shadow-xl">Apply Changes</button>
+                <button onclick="closeSettingsModal()" class="w-full py-4 bg-slate-900 text-white rounded-2xl font-black shadow-xl hover:bg-slate-800">Apply Changes</button>
             </div>
         </div>
     </div>
 
     <!-- Unbook Confirmation -->
     <div id="confirm-overlay" class="fixed inset-0 bg-slate-900/60 modal-overlay hidden items-center justify-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl p-6 space-y-4 text-center">
+        <div class="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl p-6 space-y-4 text-center animate-in fade-in zoom-in duration-200">
+            <div class="mx-auto w-12 h-12 bg-red-100 text-red-500 rounded-full flex items-center justify-center mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+            </div>
             <h3 id="confirm-title" class="text-lg font-black text-slate-800">Remove Booking?</h3>
             <p id="confirm-msg" class="text-sm text-slate-500">This will make the slot available again.</p>
             <div class="flex gap-2 pt-2">
-                <button onclick="closeConfirmModal()" class="flex-1 py-3 font-bold text-slate-400">Cancel</button>
-                <button id="confirm-yes-btn" class="flex-1 py-3 font-bold text-white bg-red-500 rounded-xl">Yes, Remove</button>
+                <button onclick="closeConfirmModal()" class="flex-1 py-3 font-bold text-slate-400 hover:bg-slate-50 rounded-xl">Cancel</button>
+                <button id="confirm-yes-btn" class="flex-1 py-3 font-bold text-white bg-red-500 rounded-xl shadow-lg shadow-red-200 hover:bg-red-600">Yes, Remove</button>
             </div>
         </div>
     </div>
 
-    <div id="main-container" class="max-w-md mx-auto bg-white min-h-screen shadow-2xl flex flex-col">
+    <!-- Main App Container -->
+    <div id="main-container" class="max-w-md mx-auto bg-white min-h-screen shadow-2xl flex flex-col transition-all duration-500">
         
-        <!-- Header with Increased Safe Area support -->
+        <!-- Header -->
         <header class="bg-indigo-700 px-6 pb-6 safe-top text-white flex justify-between items-center rounded-b-[2rem] shadow-lg sticky top-0 z-50">
-            <h1 class="text-2xl font-bold tracking-tight">GeniusHub Classes</h1>
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight">GeniusHub</h1>
+                <p class="text-[10px] text-indigo-200 uppercase font-bold tracking-widest">Instructor Dashboard</p>
+            </div>
             <button onclick="openSettingsModal()" class="p-3 bg-white/10 rounded-2xl hover:bg-white/20 transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
             </button>
         </header>
 
-        <!-- Global View Controls -->
+        <!-- Controls -->
         <div id="controls" class="p-5 space-y-4">
             <div class="space-y-2">
                 <label class="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">Preview Global Region</label>
                 <div class="relative">
-                    <select id="timezone-select" onchange="updateView()" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl shadow-sm focus:ring-2 focus:ring-indigo-500 outline-none appearance-none font-bold text-indigo-900">
+                    <select id="timezone-select" onchange="updateView()" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl shadow-sm focus:ring-2 focus:ring-indigo-500 outline-none appearance-none font-bold text-indigo-900 cursor-pointer">
                     </select>
                     <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">▼</div>
                 </div>
@@ -191,7 +225,7 @@
         <div id="schedule-container" class="flex-grow p-4 space-y-8 pb-4 custom-scrollbar overflow-y-auto">
         </div>
 
-        <!-- Footer for Reset -->
+        <!-- Footer -->
         <footer class="p-6 safe-bottom border-t border-slate-200 bg-white rounded-t-[2rem] shadow-[0_-4px_20px_rgba(0,0,0,0.05)] mt-auto">
             <button onclick="openResetModal()" class="w-full py-4 text-xs text-red-500 font-bold uppercase tracking-widest bg-red-50 rounded-2xl hover:bg-red-100 transition-colors">
                 Reset Weekly Schedule
@@ -201,12 +235,12 @@
 
     <!-- Reset Confirmation -->
     <div id="reset-overlay" class="fixed inset-0 bg-slate-900/60 modal-overlay hidden items-center justify-center p-4">
-        <div class="bg-white w-full max-sm rounded-[2rem] shadow-2xl p-6 space-y-4 text-center">
-            <h3 class="text-lg font-black">Reset Week?</h3>
+        <div class="bg-white w-full max-sm rounded-[2rem] shadow-2xl p-6 space-y-4 text-center animate-in fade-in zoom-in duration-200">
+            <h3 class="text-lg font-black text-slate-800">Reset Week?</h3>
             <p class="text-sm text-slate-500">Clears all assignments.</p>
             <div class="flex gap-2">
-                <button onclick="closeResetModal()" class="flex-1 py-3 font-bold text-slate-400">Cancel</button>
-                <button onclick="confirmReset()" class="flex-1 py-3 font-bold text-white bg-red-500 rounded-xl">Reset</button>
+                <button onclick="closeResetModal()" class="flex-1 py-3 font-bold text-slate-400 hover:bg-slate-50 rounded-xl">Cancel</button>
+                <button onclick="confirmReset()" class="flex-1 py-3 font-bold text-white bg-red-500 rounded-xl shadow-lg shadow-red-200 hover:bg-red-600">Reset</button>
             </div>
         </div>
     </div>
@@ -215,7 +249,7 @@
         const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
         
         let config = {
-            slots: ["04:30", "05:30", "06:30", "07:30", "18:00", "20:00"], // Added sample times for testing
+            slots: ["04:30", "05:30", "06:30", "07:30", "18:00", "20:00"],
             timezones: [
                 { label: "India (IST)", value: "Asia/Kolkata" },
                 { label: "USA (East Coast)", value: "America/New_York" },
@@ -230,6 +264,50 @@
 
         let schedule = {};
         let activeEdit = null; 
+        
+        // --- AUDIO ALERT (Beep) ---
+        // Simple base64 beep sound (short sine wave) to avoid external dependencies
+        const beepSound = new Audio("data:audio/wav;base64,UklGRl9vT1BXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU"); // Placeholder init
+        
+        function playBeep() {
+            // Using Web Audio API for a synthetic beep which is more reliable than loading files
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContext) return;
+                
+                const ctx = new AudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                
+                osc.type = 'sine';
+                osc.frequency.value = 880; // A5
+                gain.gain.value = 0.1;
+                
+                osc.start();
+                
+                // Beep pattern: Beep... Beep...
+                setTimeout(() => { osc.stop(); }, 200);
+                setTimeout(() => { 
+                    const osc2 = ctx.createOscillator();
+                    const gain2 = ctx.createGain();
+                    osc2.connect(gain2);
+                    gain2.connect(ctx.destination);
+                    osc2.type = 'sine';
+                    osc2.frequency.value = 880;
+                    gain2.gain.value = 0.1;
+                    osc2.start();
+                    setTimeout(() => osc2.stop(), 200);
+                }, 400);
+
+            } catch (e) {
+                console.error("Audio play failed", e);
+            }
+        }
+
+        // --- INIT ---
 
         function initData() {
             const savedConfig = localStorage.getItem('geniushub_config');
@@ -273,6 +351,109 @@
             localStorage.setItem('geniushub_config', JSON.stringify(config));
             localStorage.setItem('geniushub_schedule_v6', JSON.stringify(schedule));
         }
+
+        // --- ALARM SYSTEM ---
+
+        function requestNotificationAccess() {
+            if (!("Notification" in window)) {
+                alert("This browser does not support desktop notifications");
+            } else {
+                Notification.requestPermission().then(permission => {
+                    const btn = document.getElementById('btn-notify-perm');
+                    if (permission === "granted") {
+                        btn.innerText = "Notifications Enabled ✅";
+                        btn.classList.replace('bg-indigo-600', 'bg-green-600');
+                        new Notification("GeniusHub", { body: "Alarms are now active!" });
+                    } else {
+                        btn.innerText = "Permission Denied ❌";
+                        btn.classList.replace('bg-indigo-600', 'bg-red-600');
+                    }
+                });
+            }
+        }
+
+        // Prevent multiple alerts for the same minute
+        let lastAlertMinute = null;
+
+        function checkAlarms() {
+            const now = new Date();
+            // Format current time to IST components
+            const istString = now.toLocaleTimeString('en-US', { timeZone: 'Asia/Kolkata', hour12: false, hour: '2-digit', minute: '2-digit' });
+            const [currentH, currentM] = istString.split(':').map(Number);
+            const currentTotalMins = (currentH * 60) + currentM;
+            const currentDayName = now.toLocaleDateString('en-US', { timeZone: 'Asia/Kolkata', weekday: 'long' });
+
+            // Avoid double checking in same minute
+            if (lastAlertMinute === currentTotalMins) return;
+            lastAlertMinute = currentTotalMins;
+
+            // Get today's slots
+            const todaysSlots = schedule[currentDayName];
+            if (!todaysSlots) return;
+
+            todaysSlots.forEach(slot => {
+                if (slot.status === 'booked') {
+                    const [slotH, slotM] = slot.ist.split(':').map(Number);
+                    const slotTotalMins = (slotH * 60) + slotM;
+
+                    // Calculate difference (handle midnight wrapping if needed, though rare for classes)
+                    let diff = slotTotalMins - currentTotalMins;
+                    
+                    // Logic: Alarm exactly 30 mins before
+                    if (diff === 30) {
+                        triggerAlarm(slot);
+                    }
+                }
+            });
+        }
+
+        function triggerAlarm(slot) {
+            playBeep();
+            
+            // Browser Notification
+            if (Notification.permission === "granted") {
+                new Notification("Class Reminder ⏰", {
+                    body: `Class with ${slot.student} starts in 30 minutes! (${slot.ist} IST)`,
+                    icon: '/favicon.ico'
+                });
+            }
+
+            // In-App Toast
+            const toast = document.createElement('div');
+            toast.className = "bg-white border-l-4 border-red-500 shadow-xl p-4 rounded-lg pointer-events-auto flex items-start gap-3 w-80 toast-enter";
+            toast.innerHTML = `
+                <div class="text-2xl">⏰</div>
+                <div>
+                    <h4 class="font-bold text-slate-800">Upcoming Class!</h4>
+                    <p class="text-sm text-slate-600">Session with <span class="font-bold text-indigo-600">${slot.student}</span> starts in 30 mins.</p>
+                </div>
+                <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-slate-600 ml-auto">✕</button>
+            `;
+            document.getElementById('toast-container').appendChild(toast);
+            
+            // Auto remove toast after 10s
+            setTimeout(() => { if(toast.parentElement) toast.remove(); }, 10000);
+        }
+
+        // --- THEME SYSTEM ---
+        function updateGlobalTheme() {
+            const now = new Date();
+            const hour = parseInt(now.toLocaleTimeString('en-US', { timeZone: 'Asia/Kolkata', hour12: false, hour: '2-digit' }));
+            const body = document.body;
+            
+            // Reset base theme classes
+            body.classList.remove('page-theme-morning', 'page-theme-afternoon', 'page-theme-night', 'bg-slate-50');
+            
+            if (hour >= 5 && hour < 12) {
+                body.classList.add('page-theme-morning');
+            } else if (hour >= 12 && hour < 18) {
+                body.classList.add('page-theme-afternoon');
+            } else {
+                body.classList.add('page-theme-night');
+            }
+        }
+
+        // --- UI INTERACTION ---
 
         function toggleStatus(day, index) {
             const slot = schedule[day][index];
@@ -386,6 +567,13 @@
         }
 
         function renderSettings() {
+            // Update Permission Button State
+            const btn = document.getElementById('btn-notify-perm');
+            if (Notification.permission === "granted") {
+                btn.innerText = "Notifications Enabled ✅";
+                btn.classList.replace('bg-indigo-600', 'bg-green-600');
+            }
+
             const slotsList = document.getElementById('settings-slots-list');
             slotsList.innerHTML = config.slots.map((s, i) => `
                 <div class="flex justify-between items-center p-3 bg-white border rounded-xl shadow-sm">
@@ -451,7 +639,7 @@
             days.forEach((mentorDay, dayIndex) => {
                 const daySection = document.createElement('div');
                 daySection.className = "space-y-4";
-                daySection.innerHTML = `<div class="flex items-center gap-3"><h2 class="text-sm font-black text-slate-800 uppercase tracking-widest">${mentorDay}</h2><div class="h-px flex-grow bg-slate-100"></div></div>`;
+                daySection.innerHTML = `<div class="flex items-center gap-3"><h2 class="text-sm font-black text-slate-800 uppercase tracking-widest">${mentorDay}</h2><div class="h-px flex-grow bg-slate-200"></div></div>`;
 
                 const grid = document.createElement('div');
                 grid.className = "grid grid-cols-1 gap-3";
@@ -478,45 +666,45 @@
                     let timeClass = 'time-morning';
                     let periodLabel = 'Morning';
                     
-                    if (hour >= 12 && hour < 20) {
+                    if (hour >= 12 && hour < 18) {
                         timeClass = 'time-afternoon';
                         periodLabel = 'Afternoon';
-                    } else if (hour >= 20) {
+                    } else if (hour >= 18) {
                         timeClass = 'time-night';
                         periodLabel = 'Night';
                     }
 
                     const btn = document.createElement('div');
-                    // Add both the time class and the status booked class. CSS !important ensures booked color overrides time color if needed
+                    
+                    // Using !important in CSS (.status-booked) ensures red overrides the time colors
                     btn.className = `p-5 rounded-[2rem] border-2 transition-all flex flex-col gap-3 cursor-pointer ${timeClass} status-${slot.status} shadow-sm active:scale-[0.98]`;
                     
-                    const isISTView = viewTz === 'Asia/Kolkata';
                     const dayDifference = viewDayName !== mentorDay;
 
                     btn.innerHTML = `
                         <div class="flex justify-between items-start">
                             <div class="flex flex-col">
-                                <span class="text-[10px] font-bold uppercase opacity-50">Preview Time (${viewTz.split('/').pop()})</span>
-                                <span class="text-xl font-black leading-none">${viewTimeStr}</span>
-                                ${dayDifference ? `<span class="mt-1 text-[9px] font-black text-indigo-600 uppercase">Day Shifted: ${viewDayName}</span>` : ''}
+                                <span class="text-[10px] font-bold uppercase opacity-60">Preview Time (${viewTz.split('/').pop()})</span>
+                                <span class="text-xl font-black leading-none mt-1">${viewTimeStr}</span>
+                                ${dayDifference ? `<span class="mt-1 text-[9px] font-black text-indigo-600 uppercase bg-white/50 px-2 py-0.5 rounded w-fit">Day Shifted: ${viewDayName}</span>` : ''}
                             </div>
                             <div class="text-right flex flex-col items-end">
-                                <span class="text-[9px] uppercase font-black px-2 py-0.5 rounded-full bg-white/50 mb-1">${slot.status === 'booked' ? 'Booked' : periodLabel}</span>
+                                <span class="text-[9px] uppercase font-black px-2 py-0.5 rounded-full bg-white/60 mb-1 border border-black/5">${slot.status === 'booked' ? 'Booked' : periodLabel}</span>
                                 <span class="text-xs font-bold opacity-60">IST: ${slot.ist}</span>
                             </div>
                         </div>
 
                         ${slot.status === 'booked' ? `
-                            <div class="pt-3 border-t border-indigo-100/50 flex flex-col gap-1">
+                            <div class="pt-3 border-t border-red-200/50 flex flex-col gap-1">
                                 <div class="flex justify-between items-center">
-                                    <span class="text-sm font-black text-indigo-900 truncate flex-grow mr-2">👤 ${slot.student}</span>
-                                    <span class="text-[10px] font-bold text-indigo-400 whitespace-nowrap">${studentSpecificTimeStr} (${slot.studentTz.split('/').pop()})</span>
+                                    <span class="text-sm font-black truncate flex-grow mr-2 text-red-900">👤 ${slot.student}</span>
+                                    <span class="text-[10px] font-bold text-red-600 whitespace-nowrap bg-white/40 px-2 py-1 rounded-lg">${studentSpecificTimeStr} (${slot.studentTz.split('/').pop()})</span>
                                 </div>
                                 ${studentSpecificDayName !== mentorDay ? `<span class="text-[9px] font-bold text-amber-600 uppercase">⚠️ Their Day: ${studentSpecificDayName}</span>` : ''}
-                                ${slot.note ? `<span class="text-[10px] italic text-slate-500 bg-white/40 p-1.5 rounded-lg mt-1">${slot.note}</span>` : ''}
+                                ${slot.note ? `<span class="text-[10px] italic text-red-800/70 bg-white/40 p-2 rounded-lg mt-1">${slot.note}</span>` : ''}
                             </div>
                         ` : `
-                            <div class="pt-2 text-center text-[10px] font-bold uppercase tracking-widest opacity-60 italic">
+                            <div class="pt-2 text-center text-[10px] font-bold uppercase tracking-widest opacity-40 italic">
                                 — Available —
                             </div>
                         `}
@@ -533,11 +721,20 @@
 
         initData();
         renderSettings();
+        updateGlobalTheme();
         updateView();
 
+        // Clock Update Loop
         setInterval(() => {
             document.getElementById('current-ist-clock').innerText = new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true });
-        }, 30000);
+            updateGlobalTheme(); // Check theme every 10s
+        }, 10000);
+
+        // Alarm Check Loop (Every 60s)
+        setInterval(checkAlarms, 60000);
+        // Run once on load to catch immediate alarms
+        setTimeout(checkAlarms, 2000);
+
     </script>
 </body>
 </html>
