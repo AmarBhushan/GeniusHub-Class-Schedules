@@ -116,7 +116,7 @@
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-8.683-2.031-9.672-.272-.989-.471-1.486-.891-1.486-.322 0-.694.025-1.066.025-.371 0-.966.149-1.462.693-.496.545-1.907 1.857-1.907 4.529 0 2.673 1.957 5.244 2.229 5.641.272.397 3.812 5.925 9.387 8.237 3.279 1.36 4.585 1.36 6.196 1.137 1.61-.223 2.946-1.634 3.342-2.748.397-1.114.397-2.056.273-2.254z"/></svg>
                 <span class="font-bold text-lg">Send Reminder</span>
             </button>
-            <p class="text-[10px] text-center text-slate-400 px-4">Opens WhatsApp with meeting link & time pre-filled.</p>
+            <p class="text-[10px] text-center text-slate-400 px-4">Opens WhatsApp with greeting, time & link.</p>
 
             <div class="h-px bg-slate-100 my-2"></div>
 
@@ -260,6 +260,7 @@
         let schedule = {};
         let activeEdit = null; // { day, index }
         let currentViewDayIndex = 0; // 0 = Monday, etc.
+        let isFirstLoad = true; // Flag for auto-scroll
 
         // --- INIT ---
 
@@ -323,7 +324,7 @@
             
             if (hour >= 5 && hour < 12) {
                 body.classList.add('page-theme-morning');
-            } else if (hour >= 12 && hour < 18) {
+            } else if (hour >= 12 && hour < 19) {
                 body.classList.add('page-theme-afternoon');
             } else {
                 body.classList.add('page-theme-night');
@@ -439,7 +440,7 @@
             if (!activeEdit) return;
             const slot = schedule[activeEdit.day][activeEdit.index];
             
-            // Calculate Student's time
+            // Calculate Student's time for the session
             const [h, m] = slot.ist.split(':');
             const refDate = getReferenceDate(daysFull.indexOf(activeEdit.day));
             refDate.setHours(parseInt(h), parseInt(m), 0, 0);
@@ -447,19 +448,31 @@
             const studentTime = refDate.toLocaleTimeString('en-US', { timeZone: slot.studentTz, hour: 'numeric', minute: '2-digit', hour12: true });
             const studentDay = refDate.toLocaleDateString('en-US', { timeZone: slot.studentTz, weekday: 'long' });
             
-            // Construct Message
-            let msg = `Hi ${slot.student}, this is a reminder for our session.\n\n`;
-            msg += `📅 *Time:* ${activeEdit.day}, ${slot.ist} IST`;
+            // --- Determine Greeting (based on Student's CURRENT time) ---
+            const nowStudent = new Date().toLocaleTimeString('en-US', { timeZone: slot.studentTz, hour12: false });
+            const studentCurrentHour = parseInt(nowStudent.split(':')[0]);
             
-            if (slot.studentTz !== 'Asia/Kolkata') {
-                msg += `\n(Your time: ${studentDay}, ${studentTime})`;
-            }
+            let greeting = "Good Morning";
+            if (studentCurrentHour >= 12 && studentCurrentHour < 17) greeting = "Good Afternoon";
+            if (studentCurrentHour >= 17) greeting = "Good Evening";
+
+            // --- Construct Message ---
+            // 1. Greeting (No Name)
+            let msg = `${greeting},\n\n`; 
+            // 2. Body
+            msg += `This is a reminder for our session.\n`;
+            // 3. Time (THEIR time only)
+            msg += `📅 *Time:* ${studentDay}, ${studentTime}`;
             
+            // 4. Link
             if (config.meetingLink) {
                 msg += `\n\n🔗 *Link:* ${config.meetingLink}`;
             } else {
                 msg += `\n\n🔗 *Link:* (Please check your email)`;
             }
+
+            // 5. Sign-off
+            msg += `\n\nThanks,\nAmar Bhushan`;
 
             const url = `https://wa.me/?text=${encodeURIComponent(msg)}`;
             window.open(url, '_blank');
@@ -568,20 +581,32 @@
 
             const mentorDay = daysFull[currentViewDayIndex];
             
-            // Header for the specific day view
-            // const dayHeader = document.createElement('div');
-            // dayHeader.className = "flex items-center gap-3 pb-2";
-            // dayHeader.innerHTML = `<h2 class="text-xl font-black text-slate-800 uppercase tracking-tight">${mentorDay}</h2><div class="h-px flex-grow bg-slate-200"></div>`;
-            // container.appendChild(dayHeader);
-
             const grid = document.createElement('div');
             grid.className = "grid grid-cols-1 gap-3 animate-in slide-in-from-right-4 duration-300";
+
+            // Variables to track closest slot
+            let closestSlotId = null;
+            let minDiff = Infinity;
+            const now = new Date();
+            const currentHour = now.getHours();
+            const currentMin = now.getMinutes();
+            const currentTotalMins = (currentHour * 60) + currentMin;
 
             (schedule[mentorDay] || []).forEach((slot, index) => {
                 const [h, m] = slot.ist.split(':');
                 const hour = parseInt(h);
+                const minute = parseInt(m);
+                
                 const refDate = getReferenceDate(currentViewDayIndex);
-                refDate.setHours(hour, parseInt(m), 0, 0);
+                refDate.setHours(hour, minute, 0, 0);
+
+                // --- Find Closest Slot Logic (Simple Diff) ---
+                const slotTotalMins = (hour * 60) + minute;
+                const diff = Math.abs(slotTotalMins - currentTotalMins);
+                if (diff < minDiff) {
+                    minDiff = diff;
+                    closestSlotId = `slot-${index}`;
+                }
 
                 // 1. Time based on the Global Preview Selector (View Time)
                 const viewDayName = refDate.toLocaleDateString('en-US', { timeZone: viewTz, weekday: 'long' });
@@ -596,18 +621,20 @@
                 }
 
                 // Determine Time Period Class
+                // Updated Logic: 12 AM - 12 PM (Morning), 12 PM - 7 PM (Afternoon), 7 PM+ (Night)
                 let timeClass = 'time-morning';
                 let periodLabel = 'Morning';
                 
-                if (hour >= 12 && hour < 18) {
+                if (hour >= 12 && hour < 19) {
                     timeClass = 'time-afternoon';
                     periodLabel = 'Afternoon';
-                } else if (hour >= 18) {
+                } else if (hour >= 19) {
                     timeClass = 'time-night';
                     periodLabel = 'Night';
                 }
 
                 const btn = document.createElement('div');
+                btn.id = `slot-${index}`; // Add ID for scrolling
                 btn.className = `p-5 rounded-[2rem] border-2 transition-all flex flex-col gap-3 cursor-pointer ${timeClass} status-${slot.status} shadow-sm active:scale-[0.98]`;
                 
                 const dayDifference = viewDayName !== mentorDay;
@@ -649,6 +676,15 @@
             container.appendChild(grid);
 
             document.getElementById('current-ist-clock').innerText = new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true });
+        
+            // Scroll to nearest slot on first load of the day view
+            if (isFirstLoad && closestSlotId) {
+                setTimeout(() => {
+                    const el = document.getElementById(closestSlotId);
+                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 300);
+                isFirstLoad = false;
+            }
         }
 
         initData();
