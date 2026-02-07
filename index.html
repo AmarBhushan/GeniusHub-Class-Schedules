@@ -12,7 +12,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#4338ca">
 
-    <!-- Embedded Icon (SVG Data URI) for Home Screen -->
+    <!-- Embedded Icon (SVG Data URI) -->
     <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='120' fill='%234338ca'/%3E%3Cpath d='M160 140h192c11 0 20 9 20 20v32c0 11-9 20-20 20h-22v100h20c11 0 20 9 20 20v32c0 11-9 20-20 20h-20v40c0 11-9 20-20 20h-32c-11 0-20-9-20-20v-40h-80v40c0 11-9 20-20 20h-32c-11 0-20-9-20-20v-40h-20c-11 0-20-9-20-20v-32c0-11 9-20 20-20h20V212h-22c-11 0-20-9-20-20v-32c0-11 9-20 20-20h192z' fill='white' fill-opacity='0.2'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-family='sans-serif' font-weight='bold' font-size='220' fill='white'%3EGH%3C/text%3E%3C/svg%3E">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='120' fill='%234338ca'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-family='sans-serif' font-weight='bold' font-size='220' fill='white'%3EGH%3C/text%3E%3C/svg%3E">
 
@@ -31,69 +31,45 @@
         /* --- Global Body Themes (Page Background) --- */
         .page-theme-morning { background-color: #f0f9ff; }   /* Sky 50 */
         .page-theme-afternoon { background-color: #fffaf0; } /* Floral White/Warm */
-        .page-theme-night { background-color: #cbd5e1; }     /* Slate 300 - Distinct Grey */
+        .page-theme-night { background-color: #cbd5e1; }     /* Slate 300 */
 
         /* --- Card Color Themes --- */
-        
-        /* Morning: Sky Blue/Cyan - Fresh & Cool */
         .time-morning { 
-            background-color: #e0f2fe; /* Sky 100 */
-            border-color: #7dd3fc;    /* Sky 300 */
-            color: #0c4a6e;           /* Sky 900 */
+            background-color: #e0f2fe; border-color: #7dd3fc; color: #0c4a6e;
         }
-        
-        /* Afternoon: Amber/Orange - Warm & Sunny */
         .time-afternoon { 
-            background-color: #fff7ed; /* Orange 50 */
-            border-color: #fdba74;    /* Orange 300 */
-            color: #9a3412;           /* Orange 800 */
+            background-color: #fff7ed; border-color: #fdba74; color: #9a3412;
         }
-        
-        /* Night: Slate/Indigo Gray - Darker & Calm */
         .time-night { 
-            background-color: #e2e8f0; /* Slate 200 */
-            border-color: #94a3b8;    /* Slate 400 */
-            color: #334155;           /* Slate 700 */
+            background-color: #e2e8f0; border-color: #94a3b8; color: #334155;
         }
-
-        /* Booked Override: Bright Red - Alert Color */
         .status-booked { 
-            background-color: #fee2e2 !important; /* Red 100 */
-            border-color: #ef4444 !important;     /* Red 500 */
-            color: #991b1b !important;            /* Red 800 */
+            background-color: #fee2e2 !important; 
+            border-color: #ef4444 !important;     
+            color: #991b1b !important;            
             box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.2) !important;
         }
         
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 0px; background: transparent; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
         .modal-overlay {
             backdrop-filter: blur(4px);
             transition: opacity 0.2s ease-in-out;
             z-index: 100;
         }
-
-        /* Reduced Safe Top Padding as requested */
-        .safe-top { 
-            padding-top: max(1.5rem, env(safe-area-inset-top) + 1rem); 
-        }
-        
+        .safe-top { padding-top: max(1.5rem, env(safe-area-inset-top) + 1rem); }
         .safe-bottom { padding-bottom: max(1.5rem, env(safe-area-inset-bottom) + 1rem); }
         
-        /* Toast Animation */
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        .toast-enter { animation: slideIn 0.3s ease-out forwards; }
+        /* Tab Animation */
+        .tab-active { background-color: #4f46e5; color: white; border-color: #4f46e5; transform: scale(1.05); }
+        .tab-inactive { background-color: #f1f5f9; color: #64748b; border-color: #cbd5e1; }
     </style>
 </head>
 <body id="app-body" class="bg-slate-50 min-h-screen text-slate-900">
 
-    <!-- Alarm Toast Container -->
-    <div id="toast-container" class="fixed top-4 right-4 z-[110] flex flex-col gap-2 pointer-events-none"></div>
-
-    <!-- Booking Modal -->
+    <!-- Booking Modal (New Assignment) -->
     <div id="modal-overlay" class="fixed inset-0 bg-slate-900/60 modal-overlay hidden items-center justify-center p-4">
         <div class="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl p-6 space-y-4 animate-in fade-in zoom-in duration-200">
             <div class="text-center">
@@ -127,26 +103,52 @@
         </div>
     </div>
 
+    <!-- Manage Session Modal (WhatsApp/Unbook) -->
+    <div id="manage-overlay" class="fixed inset-0 bg-slate-900/60 modal-overlay hidden items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl p-6 space-y-4 animate-in fade-in zoom-in duration-200">
+            <div class="text-center mb-4">
+                <h3 id="manage-title" class="text-xl font-black text-slate-800">Manage Session</h3>
+                <p id="manage-subtitle" class="text-sm text-slate-500">Student Name</p>
+            </div>
+
+            <!-- WhatsApp Button -->
+            <button onclick="sendWhatsappReminder()" class="w-full py-4 bg-green-500 hover:bg-green-600 text-white rounded-2xl shadow-lg shadow-green-100 flex items-center justify-center gap-2 transition-transform active:scale-95">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-8.683-2.031-9.672-.272-.989-.471-1.486-.891-1.486-.322 0-.694.025-1.066.025-.371 0-.966.149-1.462.693-.496.545-1.907 1.857-1.907 4.529 0 2.673 1.957 5.244 2.229 5.641.272.397 3.812 5.925 9.387 8.237 3.279 1.36 4.585 1.36 6.196 1.137 1.61-.223 2.946-1.634 3.342-2.748.397-1.114.397-2.056.273-2.254z"/></svg>
+                <span class="font-bold text-lg">Send Reminder</span>
+            </button>
+            <p class="text-[10px] text-center text-slate-400 px-4">Opens WhatsApp with meeting link & time pre-filled.</p>
+
+            <div class="h-px bg-slate-100 my-2"></div>
+
+            <div class="flex gap-2">
+                <button onclick="closeManageModal()" class="flex-1 py-3 font-bold text-slate-400 bg-slate-50 rounded-xl hover:bg-slate-100">Back</button>
+                <button onclick="confirmUnbook()" class="flex-1 py-3 font-bold text-red-500 bg-red-50 rounded-xl hover:bg-red-100">Cancel Class</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Settings Modal -->
     <div id="settings-overlay" class="fixed inset-0 bg-slate-900/60 modal-overlay hidden items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md h-[80vh] rounded-[2rem] shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
+        <div class="bg-white w-full max-w-md h-[85vh] rounded-[2rem] shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
             <div class="p-6 border-b flex justify-between items-center">
                 <h3 class="text-xl font-black text-slate-800">Configuration</h3>
                 <button onclick="closeSettingsModal()" class="text-slate-400 p-2 hover:bg-slate-100 rounded-full">✕</button>
             </div>
             
             <div class="flex-grow overflow-y-auto p-6 space-y-8 custom-scrollbar">
-                <!-- Notifications Permission -->
+                
+                <!-- Meeting Link Section -->
                 <section class="space-y-2 p-4 bg-indigo-50 rounded-2xl border border-indigo-100">
-                    <h4 class="text-xs font-black uppercase tracking-widest text-indigo-600">Alarms</h4>
-                    <p class="text-xs text-indigo-800/70 mb-2">Play sound & notify 30 mins before class.</p>
-                    <button onclick="requestNotificationAccess()" id="btn-notify-perm" class="w-full py-2 bg-indigo-600 text-white text-xs font-bold rounded-xl">Enable Notifications</button>
+                    <h4 class="text-xs font-black uppercase tracking-widest text-indigo-600">Default Meeting Link</h4>
+                    <p class="text-xs text-indigo-800/70 mb-2">Sent in WhatsApp reminders.</p>
+                    <input type="text" id="setting-meeting-link" placeholder="e.g. meet.google.com/abc-xyz" 
+                        class="w-full p-3 bg-white border border-indigo-200 rounded-xl text-sm text-indigo-900 font-medium focus:ring-2 focus:ring-indigo-500 outline-none">
                 </section>
 
                 <section class="space-y-4">
                     <div class="flex justify-between items-end">
                         <h4 class="text-xs font-black uppercase tracking-widest text-indigo-600">Daily Slots (IST)</h4>
-                        <span class="text-[10px] text-slate-400">Add 24h format</span>
+                        <span class="text-[10px] text-slate-400">24h format</span>
                     </div>
                     <div id="settings-slots-list" class="space-y-2"></div>
                     <div class="flex gap-2">
@@ -156,7 +158,7 @@
                 </section>
 
                 <section class="space-y-4">
-                    <h4 class="text-xs font-black uppercase tracking-widest text-indigo-600">Manage Time Zones</h4>
+                    <h4 class="text-xs font-black uppercase tracking-widest text-indigo-600">Time Zones</h4>
                     <div id="settings-tz-list" class="space-y-2"></div>
                     <div class="space-y-2 pt-2">
                         <input type="text" id="new-tz-label" placeholder="Label (e.g. New York)" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none text-sm">
@@ -169,22 +171,7 @@
             </div>
 
             <div class="p-4 bg-slate-50 border-t">
-                <button onclick="closeSettingsModal()" class="w-full py-4 bg-slate-900 text-white rounded-2xl font-black shadow-xl hover:bg-slate-800">Apply Changes</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Unbook Confirmation -->
-    <div id="confirm-overlay" class="fixed inset-0 bg-slate-900/60 modal-overlay hidden items-center justify-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl p-6 space-y-4 text-center animate-in fade-in zoom-in duration-200">
-            <div class="mx-auto w-12 h-12 bg-red-100 text-red-500 rounded-full flex items-center justify-center mb-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-            </div>
-            <h3 id="confirm-title" class="text-lg font-black text-slate-800">Remove Booking?</h3>
-            <p id="confirm-msg" class="text-sm text-slate-500">This will make the slot available again.</p>
-            <div class="flex gap-2 pt-2">
-                <button onclick="closeConfirmModal()" class="flex-1 py-3 font-bold text-slate-400 hover:bg-slate-50 rounded-xl">Cancel</button>
-                <button id="confirm-yes-btn" class="flex-1 py-3 font-bold text-white bg-red-500 rounded-xl shadow-lg shadow-red-200 hover:bg-red-600">Yes, Remove</button>
+                <button onclick="closeSettingsModal()" class="w-full py-4 bg-slate-900 text-white rounded-2xl font-black shadow-xl hover:bg-slate-800">Save Changes</button>
             </div>
         </div>
     </div>
@@ -193,7 +180,7 @@
     <div id="main-container" class="max-w-md mx-auto bg-white min-h-screen shadow-2xl flex flex-col transition-all duration-500">
         
         <!-- Header -->
-        <header class="bg-indigo-700 px-6 pb-6 safe-top text-white flex justify-between items-center rounded-b-[2rem] shadow-lg sticky top-0 z-50">
+        <header class="bg-indigo-700 px-6 pb-4 pt-10 safe-top text-white flex justify-between items-center rounded-b-[2rem] shadow-lg sticky top-0 z-50">
             <div>
                 <h1 class="text-2xl font-bold tracking-tight">GeniusHub</h1>
                 <p class="text-[10px] text-indigo-200 uppercase font-bold tracking-widest">Instructor Dashboard</p>
@@ -203,30 +190,36 @@
             </button>
         </header>
 
+        <!-- New Day Selector (Horizontal) -->
+        <div class="px-4 py-4 bg-white/50 backdrop-blur-sm sticky top-[90px] z-40 border-b border-slate-100">
+            <div id="day-nav" class="flex overflow-x-auto gap-2 no-scrollbar pb-1">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
         <!-- Controls -->
-        <div id="controls" class="p-5 space-y-4">
+        <div id="controls" class="px-5 py-2 space-y-4">
             <div class="space-y-2">
-                <label class="text-xs font-bold uppercase tracking-wider text-slate-500 ml-1">Preview Global Region</label>
                 <div class="relative">
-                    <select id="timezone-select" onchange="updateView()" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl shadow-sm focus:ring-2 focus:ring-indigo-500 outline-none appearance-none font-bold text-indigo-900 cursor-pointer">
+                    <select id="timezone-select" onchange="updateView()" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl shadow-sm focus:ring-2 focus:ring-indigo-500 outline-none appearance-none font-bold text-indigo-900 cursor-pointer text-sm">
                     </select>
                     <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">▼</div>
                 </div>
             </div>
-
-            <div class="text-center pt-2">
+            
+            <div class="text-center">
                 <div class="text-xs text-slate-400 font-medium">
                     Current IST: <span id="current-ist-clock" class="font-mono font-bold text-indigo-600">--:--</span>
                 </div>
             </div>
         </div>
 
-        <!-- Schedule Grid -->
-        <div id="schedule-container" class="flex-grow p-4 space-y-8 pb-4 custom-scrollbar overflow-y-auto">
+        <!-- Schedule Grid (Single Day View) -->
+        <div id="schedule-container" class="flex-grow p-4 space-y-4 pb-4 custom-scrollbar overflow-y-auto">
         </div>
 
         <!-- Footer -->
-        <footer class="p-6 safe-bottom border-t border-slate-200 bg-white rounded-t-[2rem] shadow-[0_-4px_20px_rgba(0,0,0,0.05)] mt-auto">
+        <footer class="p-6 safe-bottom border-t border-slate-200 bg-white mt-auto">
             <button onclick="openResetModal()" class="w-full py-4 text-xs text-red-500 font-bold uppercase tracking-widest bg-red-50 rounded-2xl hover:bg-red-100 transition-colors">
                 Reset Weekly Schedule
             </button>
@@ -246,10 +239,12 @@
     </div>
 
     <script>
-        const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        const daysFull = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        const daysShort = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
         
         let config = {
             slots: ["04:30", "05:30", "06:30", "07:30", "18:00", "20:00"],
+            meetingLink: "", // Stores the Google Meet/Zoom link
             timezones: [
                 { label: "India (IST)", value: "Asia/Kolkata" },
                 { label: "USA (East Coast)", value: "America/New_York" },
@@ -263,54 +258,13 @@
         };
 
         let schedule = {};
-        let activeEdit = null; 
-        
-        // --- AUDIO ALERT (Beep) ---
-        // Simple base64 beep sound (short sine wave) to avoid external dependencies
-        const beepSound = new Audio("data:audio/wav;base64,UklGRl9vT1BXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU"); // Placeholder init
-        
-        function playBeep() {
-            // Using Web Audio API for a synthetic beep which is more reliable than loading files
-            try {
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
-                if (!AudioContext) return;
-                
-                const ctx = new AudioContext();
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-                
-                osc.type = 'sine';
-                osc.frequency.value = 880; // A5
-                gain.gain.value = 0.1;
-                
-                osc.start();
-                
-                // Beep pattern: Beep... Beep...
-                setTimeout(() => { osc.stop(); }, 200);
-                setTimeout(() => { 
-                    const osc2 = ctx.createOscillator();
-                    const gain2 = ctx.createGain();
-                    osc2.connect(gain2);
-                    gain2.connect(ctx.destination);
-                    osc2.type = 'sine';
-                    osc2.frequency.value = 880;
-                    gain2.gain.value = 0.1;
-                    osc2.start();
-                    setTimeout(() => osc2.stop(), 200);
-                }, 400);
-
-            } catch (e) {
-                console.error("Audio play failed", e);
-            }
-        }
+        let activeEdit = null; // { day, index }
+        let currentViewDayIndex = 0; // 0 = Monday, etc.
 
         // --- INIT ---
 
         function initData() {
-            const savedConfig = localStorage.getItem('geniushub_config');
+            const savedConfig = localStorage.getItem('geniushub_config_v2');
             if (savedConfig) config = JSON.parse(savedConfig);
 
             const savedSchedule = localStorage.getItem('geniushub_schedule_v6');
@@ -320,16 +274,23 @@
             } else {
                 rebuildSchedule();
             }
+
+            // Determine current day in IST to auto-focus
+            const nowIST = new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata', weekday: 'long' });
+            const dayIdx = daysFull.indexOf(nowIST);
+            if (dayIdx !== -1) {
+                currentViewDayIndex = dayIdx;
+            }
         }
 
         function rebuildSchedule() {
             schedule = {};
-            days.forEach(day => {
+            daysFull.forEach(day => {
                 schedule[day] = config.slots.map(time => ({
                     ist: time,
                     status: 'available',
                     student: '',
-                    studentTz: 'Asia/Kolkata', // Default
+                    studentTz: 'Asia/Kolkata',
                     note: ''
                 }));
             });
@@ -337,7 +298,7 @@
         }
 
         function syncScheduleWithSlots() {
-            days.forEach(day => {
+            daysFull.forEach(day => {
                 const existing = schedule[day] || [];
                 schedule[day] = config.slots.map(time => {
                     const match = existing.find(s => s.ist === time);
@@ -348,91 +309,8 @@
         }
 
         function saveData() {
-            localStorage.setItem('geniushub_config', JSON.stringify(config));
+            localStorage.setItem('geniushub_config_v2', JSON.stringify(config));
             localStorage.setItem('geniushub_schedule_v6', JSON.stringify(schedule));
-        }
-
-        // --- ALARM SYSTEM ---
-
-        function requestNotificationAccess() {
-            if (!("Notification" in window)) {
-                alert("This browser does not support desktop notifications");
-            } else {
-                Notification.requestPermission().then(permission => {
-                    const btn = document.getElementById('btn-notify-perm');
-                    if (permission === "granted") {
-                        btn.innerText = "Notifications Enabled ✅";
-                        btn.classList.replace('bg-indigo-600', 'bg-green-600');
-                        new Notification("GeniusHub", { body: "Alarms are now active!" });
-                    } else {
-                        btn.innerText = "Permission Denied ❌";
-                        btn.classList.replace('bg-indigo-600', 'bg-red-600');
-                    }
-                });
-            }
-        }
-
-        // Prevent multiple alerts for the same minute
-        let lastAlertMinute = null;
-
-        function checkAlarms() {
-            const now = new Date();
-            // Format current time to IST components
-            const istString = now.toLocaleTimeString('en-US', { timeZone: 'Asia/Kolkata', hour12: false, hour: '2-digit', minute: '2-digit' });
-            const [currentH, currentM] = istString.split(':').map(Number);
-            const currentTotalMins = (currentH * 60) + currentM;
-            const currentDayName = now.toLocaleDateString('en-US', { timeZone: 'Asia/Kolkata', weekday: 'long' });
-
-            // Avoid double checking in same minute
-            if (lastAlertMinute === currentTotalMins) return;
-            lastAlertMinute = currentTotalMins;
-
-            // Get today's slots
-            const todaysSlots = schedule[currentDayName];
-            if (!todaysSlots) return;
-
-            todaysSlots.forEach(slot => {
-                if (slot.status === 'booked') {
-                    const [slotH, slotM] = slot.ist.split(':').map(Number);
-                    const slotTotalMins = (slotH * 60) + slotM;
-
-                    // Calculate difference (handle midnight wrapping if needed, though rare for classes)
-                    let diff = slotTotalMins - currentTotalMins;
-                    
-                    // Logic: Alarm exactly 30 mins before
-                    if (diff === 30) {
-                        triggerAlarm(slot);
-                    }
-                }
-            });
-        }
-
-        function triggerAlarm(slot) {
-            playBeep();
-            
-            // Browser Notification
-            if (Notification.permission === "granted") {
-                new Notification("Class Reminder ⏰", {
-                    body: `Class with ${slot.student} starts in 30 minutes! (${slot.ist} IST)`,
-                    icon: '/favicon.ico'
-                });
-            }
-
-            // In-App Toast
-            const toast = document.createElement('div');
-            toast.className = "bg-white border-l-4 border-red-500 shadow-xl p-4 rounded-lg pointer-events-auto flex items-start gap-3 w-80 toast-enter";
-            toast.innerHTML = `
-                <div class="text-2xl">⏰</div>
-                <div>
-                    <h4 class="font-bold text-slate-800">Upcoming Class!</h4>
-                    <p class="text-sm text-slate-600">Session with <span class="font-bold text-indigo-600">${slot.student}</span> starts in 30 mins.</p>
-                </div>
-                <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-slate-600 ml-auto">✕</button>
-            `;
-            document.getElementById('toast-container').appendChild(toast);
-            
-            // Auto remove toast after 10s
-            setTimeout(() => { if(toast.parentElement) toast.remove(); }, 10000);
         }
 
         // --- THEME SYSTEM ---
@@ -441,7 +319,6 @@
             const hour = parseInt(now.toLocaleTimeString('en-US', { timeZone: 'Asia/Kolkata', hour12: false, hour: '2-digit' }));
             const body = document.body;
             
-            // Reset base theme classes
             body.classList.remove('page-theme-morning', 'page-theme-afternoon', 'page-theme-night', 'bg-slate-50');
             
             if (hour >= 5 && hour < 12) {
@@ -455,24 +332,39 @@
 
         // --- UI INTERACTION ---
 
+        function selectDay(index) {
+            currentViewDayIndex = index;
+            renderDayNav();
+            updateView();
+        }
+
+        function renderDayNav() {
+            const nav = document.getElementById('day-nav');
+            nav.innerHTML = daysFull.map((day, i) => {
+                const isActive = i === currentViewDayIndex;
+                const activeClass = isActive ? 'tab-active' : 'tab-inactive';
+                // Show short name on mobile, full name on md+
+                return `
+                    <button onclick="selectDay(${i})" class="flex-shrink-0 px-6 py-2 rounded-full border text-sm font-bold transition-all ${activeClass}">
+                        <span class="md:hidden">${daysShort[i]}</span>
+                        <span class="hidden md:block">${daysFull[i]}</span>
+                    </button>
+                `;
+            }).join('');
+            
+            // Auto-scroll to active button
+            const activeBtn = nav.children[currentViewDayIndex];
+            if(activeBtn) {
+                activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            }
+        }
+
         function toggleStatus(day, index) {
             const slot = schedule[day][index];
             if (slot.status === 'available') {
                 openBookingModal(day, index);
             } else {
-                openConfirmModal(
-                    "Cancel Booking?",
-                    `Unbook ${slot.student}?`,
-                    () => {
-                        slot.status = 'available';
-                        slot.student = '';
-                        slot.note = '';
-                        slot.studentTz = 'Asia/Kolkata';
-                        saveData();
-                        updateView();
-                        closeConfirmModal();
-                    }
-                );
+                openManageModal(day, index);
             }
         }
 
@@ -483,10 +375,9 @@
             document.getElementById('student-name-input').value = "";
             document.getElementById('student-note-input').value = "";
             
-            // Populate student tz dropdown in modal
             const tzInput = document.getElementById('student-tz-input');
             tzInput.innerHTML = config.timezones.map(tz => `<option value="${tz.value}">${tz.label}</option>`).join('');
-            tzInput.value = document.getElementById('timezone-select').value; // Default to current view
+            tzInput.value = document.getElementById('timezone-select').value;
 
             document.getElementById('modal-overlay').classList.replace('hidden', 'flex');
             document.getElementById('student-name-input').focus();
@@ -516,6 +407,64 @@
             }
         }
 
+        // --- Manage/WhatsApp Modal ---
+
+        function openManageModal(day, index) {
+            activeEdit = { day, index };
+            const slot = schedule[day][index];
+            document.getElementById('manage-title').innerText = `${day} @ ${slot.ist}`;
+            document.getElementById('manage-subtitle').innerText = slot.student;
+            document.getElementById('manage-overlay').classList.replace('hidden', 'flex');
+        }
+
+        function closeManageModal() {
+            document.getElementById('manage-overlay').classList.replace('flex', 'hidden');
+            activeEdit = null;
+        }
+
+        function confirmUnbook() {
+            if (activeEdit) {
+                const slot = schedule[activeEdit.day][activeEdit.index];
+                slot.status = 'available';
+                slot.student = '';
+                slot.note = '';
+                slot.studentTz = 'Asia/Kolkata';
+                saveData();
+                closeManageModal();
+                updateView();
+            }
+        }
+
+        function sendWhatsappReminder() {
+            if (!activeEdit) return;
+            const slot = schedule[activeEdit.day][activeEdit.index];
+            
+            // Calculate Student's time
+            const [h, m] = slot.ist.split(':');
+            const refDate = getReferenceDate(daysFull.indexOf(activeEdit.day));
+            refDate.setHours(parseInt(h), parseInt(m), 0, 0);
+            
+            const studentTime = refDate.toLocaleTimeString('en-US', { timeZone: slot.studentTz, hour: 'numeric', minute: '2-digit', hour12: true });
+            const studentDay = refDate.toLocaleDateString('en-US', { timeZone: slot.studentTz, weekday: 'long' });
+            
+            // Construct Message
+            let msg = `Hi ${slot.student}, this is a reminder for our session.\n\n`;
+            msg += `📅 *Time:* ${activeEdit.day}, ${slot.ist} IST`;
+            
+            if (slot.studentTz !== 'Asia/Kolkata') {
+                msg += `\n(Your time: ${studentDay}, ${studentTime})`;
+            }
+            
+            if (config.meetingLink) {
+                msg += `\n\n🔗 *Link:* ${config.meetingLink}`;
+            } else {
+                msg += `\n\n🔗 *Link:* (Please check your email)`;
+            }
+
+            const url = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+            window.open(url, '_blank');
+        }
+
         // --- Settings Logic ---
         function addSlot() {
             const input = document.getElementById('new-slot-input');
@@ -529,16 +478,8 @@
         }
 
         function removeSlot(idx) {
-            const slotTime = config.slots[idx];
-            openConfirmModal(
-                "Remove Slot?",
-                `Delete ${slotTime} IST from the list?`,
-                () => {
-                    config.slots.splice(idx, 1);
-                    renderSettings();
-                    closeConfirmModal();
-                }
-            );
+            config.slots.splice(idx, 1);
+            renderSettings();
         }
 
         function addTimezone() {
@@ -553,36 +494,23 @@
 
         function removeTimezone(idx) {
             if (config.timezones.length > 1) {
-                const tzName = config.timezones[idx].label;
-                openConfirmModal(
-                    "Remove Timezone?",
-                    `Delete "${tzName}"?`,
-                    () => {
-                        config.timezones.splice(idx, 1);
-                        renderSettings();
-                        closeConfirmModal();
-                    }
-                );
+                config.timezones.splice(idx, 1);
+                renderSettings();
             }
         }
 
         function renderSettings() {
-            // Update Permission Button State
-            const btn = document.getElementById('btn-notify-perm');
-            if (Notification.permission === "granted") {
-                btn.innerText = "Notifications Enabled ✅";
-                btn.classList.replace('bg-indigo-600', 'bg-green-600');
-            }
+            document.getElementById('setting-meeting-link').value = config.meetingLink || '';
 
             const slotsList = document.getElementById('settings-slots-list');
-            slotsList.innerHTML = config.slots.map((s, i) => `
+            slotsList.innerHTML = config.slots.map((s, i) => `<br>
                 <div class="flex justify-between items-center p-3 bg-white border rounded-xl shadow-sm">
                     <span class="font-bold text-slate-700">${s} IST</span>
                     <button onclick="removeSlot(${i})" class="text-red-400 font-bold p-1">✕</button>
                 </div>`).join('');
 
             const tzList = document.getElementById('settings-tz-list');
-            tzList.innerHTML = config.timezones.map((tz, i) => `
+            tzList.innerHTML = config.timezones.map((tz, i) => `<br>
                 <div class="flex justify-between items-center p-3 bg-white border rounded-xl shadow-sm">
                     <div>
                         <div class="text-xs font-bold text-slate-800">${tz.label}</div>
@@ -604,29 +532,31 @@
         }
 
         function closeSettingsModal() { 
+            config.meetingLink = document.getElementById('setting-meeting-link').value.trim();
+            saveData();
             syncScheduleWithSlots();
             updateView();
             document.getElementById('settings-overlay').classList.replace('flex', 'hidden');
         }
 
-        function openConfirmModal(title, msg, onConfirm) {
-            document.getElementById('confirm-title').innerText = title;
-            document.getElementById('confirm-msg').innerText = msg;
-            document.getElementById('confirm-yes-btn').onclick = onConfirm;
-            document.getElementById('confirm-overlay').classList.replace('hidden', 'flex');
-        }
-        function closeConfirmModal() { document.getElementById('confirm-overlay').classList.replace('flex', 'hidden'); }
-
         function openResetModal() { document.getElementById('reset-overlay').classList.replace('hidden', 'flex'); }
         function closeResetModal() { document.getElementById('reset-overlay').classList.replace('flex', 'hidden'); }
         function confirmReset() { rebuildSchedule(); updateView(); closeResetModal(); }
 
-        function getReferenceDate(dayIndex) {
+        // Calculates date for the view logic
+        function getReferenceDate(targetDayIndex) {
             const now = new Date();
-            const currentDay = now.getDay();
+            const nowIST = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Kolkata"}));
+            
+            const currentDay = nowIST.getDay(); // 0 is Sunday
             const distFromMonday = currentDay === 0 ? 6 : currentDay - 1;
-            const refDate = new Date(now);
-            refDate.setDate(now.getDate() - distFromMonday + dayIndex);
+            
+            // Set date to this week's Monday
+            const refDate = new Date(nowIST);
+            refDate.setDate(nowIST.getDate() - distFromMonday);
+            
+            // Add target day index
+            refDate.setDate(refDate.getDate() + targetDayIndex);
             return refDate;
         }
 
@@ -636,104 +566,102 @@
             const container = document.getElementById('schedule-container');
             container.innerHTML = '';
 
-            days.forEach((mentorDay, dayIndex) => {
-                const daySection = document.createElement('div');
-                daySection.className = "space-y-4";
-                daySection.innerHTML = `<div class="flex items-center gap-3"><h2 class="text-sm font-black text-slate-800 uppercase tracking-widest">${mentorDay}</h2><div class="h-px flex-grow bg-slate-200"></div></div>`;
+            const mentorDay = daysFull[currentViewDayIndex];
+            
+            // Header for the specific day view
+            // const dayHeader = document.createElement('div');
+            // dayHeader.className = "flex items-center gap-3 pb-2";
+            // dayHeader.innerHTML = `<h2 class="text-xl font-black text-slate-800 uppercase tracking-tight">${mentorDay}</h2><div class="h-px flex-grow bg-slate-200"></div>`;
+            // container.appendChild(dayHeader);
 
-                const grid = document.createElement('div');
-                grid.className = "grid grid-cols-1 gap-3";
+            const grid = document.createElement('div');
+            grid.className = "grid grid-cols-1 gap-3 animate-in slide-in-from-right-4 duration-300";
 
-                (schedule[mentorDay] || []).forEach((slot, index) => {
-                    const [h, m] = slot.ist.split(':');
-                    const hour = parseInt(h);
-                    const refDate = getReferenceDate(dayIndex);
-                    refDate.setHours(hour, parseInt(m), 0, 0);
+            (schedule[mentorDay] || []).forEach((slot, index) => {
+                const [h, m] = slot.ist.split(':');
+                const hour = parseInt(h);
+                const refDate = getReferenceDate(currentViewDayIndex);
+                refDate.setHours(hour, parseInt(m), 0, 0);
 
-                    // 1. Time based on the Global Preview Selector (View Time)
-                    const viewDayName = refDate.toLocaleDateString('en-US', { timeZone: viewTz, weekday: 'long' });
-                    const viewTimeStr = refDate.toLocaleTimeString('en-US', { timeZone: viewTz, hour: 'numeric', minute: '2-digit', hour12: true });
-                    
-                    // 2. Time based on the specific Student's Timezone (if booked)
-                    let studentSpecificTimeStr = "";
-                    let studentSpecificDayName = "";
-                    if (slot.status === 'booked' && slot.studentTz) {
-                        studentSpecificDayName = refDate.toLocaleDateString('en-US', { timeZone: slot.studentTz, weekday: 'long' });
-                        studentSpecificTimeStr = refDate.toLocaleTimeString('en-US', { timeZone: slot.studentTz, hour: 'numeric', minute: '2-digit', hour12: true });
-                    }
+                // 1. Time based on the Global Preview Selector (View Time)
+                const viewDayName = refDate.toLocaleDateString('en-US', { timeZone: viewTz, weekday: 'long' });
+                const viewTimeStr = refDate.toLocaleTimeString('en-US', { timeZone: viewTz, hour: 'numeric', minute: '2-digit', hour12: true });
+                
+                // 2. Time based on the specific Student's Timezone (if booked)
+                let studentSpecificTimeStr = "";
+                let studentSpecificDayName = "";
+                if (slot.status === 'booked' && slot.studentTz) {
+                    studentSpecificDayName = refDate.toLocaleDateString('en-US', { timeZone: slot.studentTz, weekday: 'long' });
+                    studentSpecificTimeStr = refDate.toLocaleTimeString('en-US', { timeZone: slot.studentTz, hour: 'numeric', minute: '2-digit', hour12: true });
+                }
 
-                    // Determine Time Period Class
-                    let timeClass = 'time-morning';
-                    let periodLabel = 'Morning';
-                    
-                    if (hour >= 12 && hour < 18) {
-                        timeClass = 'time-afternoon';
-                        periodLabel = 'Afternoon';
-                    } else if (hour >= 18) {
-                        timeClass = 'time-night';
-                        periodLabel = 'Night';
-                    }
+                // Determine Time Period Class
+                let timeClass = 'time-morning';
+                let periodLabel = 'Morning';
+                
+                if (hour >= 12 && hour < 18) {
+                    timeClass = 'time-afternoon';
+                    periodLabel = 'Afternoon';
+                } else if (hour >= 18) {
+                    timeClass = 'time-night';
+                    periodLabel = 'Night';
+                }
 
-                    const btn = document.createElement('div');
-                    
-                    // Using !important in CSS (.status-booked) ensures red overrides the time colors
-                    btn.className = `p-5 rounded-[2rem] border-2 transition-all flex flex-col gap-3 cursor-pointer ${timeClass} status-${slot.status} shadow-sm active:scale-[0.98]`;
-                    
-                    const dayDifference = viewDayName !== mentorDay;
+                const btn = document.createElement('div');
+                btn.className = `p-5 rounded-[2rem] border-2 transition-all flex flex-col gap-3 cursor-pointer ${timeClass} status-${slot.status} shadow-sm active:scale-[0.98]`;
+                
+                const dayDifference = viewDayName !== mentorDay;
 
-                    btn.innerHTML = `
-                        <div class="flex justify-between items-start">
-                            <div class="flex flex-col">
-                                <span class="text-[10px] font-bold uppercase opacity-60">Preview Time (${viewTz.split('/').pop()})</span>
-                                <span class="text-xl font-black leading-none mt-1">${viewTimeStr}</span>
-                                ${dayDifference ? `<span class="mt-1 text-[9px] font-black text-indigo-600 uppercase bg-white/50 px-2 py-0.5 rounded w-fit">Day Shifted: ${viewDayName}</span>` : ''}
+                btn.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div class="flex flex-col">
+                            <span class="text-[10px] font-bold uppercase opacity-60">Preview Time (${viewTz.split('/').pop()})</span>
+                            <span class="text-xl font-black leading-none mt-1">${viewTimeStr}</span>
+                            ${dayDifference ? `<span class="mt-1 text-[9px] font-black text-indigo-600 uppercase bg-white/50 px-2 py-0.5 rounded w-fit">Day Shifted: ${viewDayName}</span>` : ''}
+                        </div>
+                        <div class="text-right flex flex-col items-end">
+                            <span class="text-[9px] uppercase font-black px-2 py-0.5 rounded-full bg-white/60 mb-1 border border-black/5">${slot.status === 'booked' ? 'Booked' : periodLabel}</span>
+                            <span class="text-xs font-bold opacity-60">IST: ${slot.ist}</span>
+                        </div>
+                    </div>
+
+                    ${slot.status === 'booked' ? `
+                        <div class="pt-3 border-t border-red-200/50 flex flex-col gap-1">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-black truncate flex-grow mr-2 text-red-900">👤 ${slot.student}</span>
+                                <span class="text-[10px] font-bold text-red-600 whitespace-nowrap bg-white/40 px-2 py-1 rounded-lg">${studentSpecificTimeStr} (${slot.studentTz.split('/').pop()})</span>
                             </div>
-                            <div class="text-right flex flex-col items-end">
-                                <span class="text-[9px] uppercase font-black px-2 py-0.5 rounded-full bg-white/60 mb-1 border border-black/5">${slot.status === 'booked' ? 'Booked' : periodLabel}</span>
-                                <span class="text-xs font-bold opacity-60">IST: ${slot.ist}</span>
+                            ${studentSpecificDayName !== mentorDay ? `<span class="text-[9px] font-bold text-amber-600 uppercase">⚠️ Their Day: ${studentSpecificDayName}</span>` : ''}
+                            ${slot.note ? `<span class="text-[10px] italic text-red-800/70 bg-white/40 p-2 rounded-lg mt-1">${slot.note}</span>` : ''}
+                            <div class="mt-2 flex justify-end">
+                                <span class="text-[9px] font-bold uppercase bg-white/50 text-red-600 px-2 py-1 rounded">Tap to Manage / WhatsApp</span>    
                             </div>
                         </div>
-
-                        ${slot.status === 'booked' ? `
-                            <div class="pt-3 border-t border-red-200/50 flex flex-col gap-1">
-                                <div class="flex justify-between items-center">
-                                    <span class="text-sm font-black truncate flex-grow mr-2 text-red-900">👤 ${slot.student}</span>
-                                    <span class="text-[10px] font-bold text-red-600 whitespace-nowrap bg-white/40 px-2 py-1 rounded-lg">${studentSpecificTimeStr} (${slot.studentTz.split('/').pop()})</span>
-                                </div>
-                                ${studentSpecificDayName !== mentorDay ? `<span class="text-[9px] font-bold text-amber-600 uppercase">⚠️ Their Day: ${studentSpecificDayName}</span>` : ''}
-                                ${slot.note ? `<span class="text-[10px] italic text-red-800/70 bg-white/40 p-2 rounded-lg mt-1">${slot.note}</span>` : ''}
-                            </div>
-                        ` : `
-                            <div class="pt-2 text-center text-[10px] font-bold uppercase tracking-widest opacity-40 italic">
-                                — Available —
-                            </div>
-                        `}
-                    `;
-                    btn.onclick = () => toggleStatus(mentorDay, index);
-                    grid.appendChild(btn);
-                });
-                daySection.appendChild(grid);
-                container.appendChild(daySection);
+                    ` : `
+                        <div class="pt-2 text-center text-[10px] font-bold uppercase tracking-widest opacity-40 italic">
+                            — Tap to Book —
+                        </div>
+                    `}
+                `;
+                btn.onclick = () => toggleStatus(mentorDay, index);
+                grid.appendChild(btn);
             });
+            container.appendChild(grid);
 
             document.getElementById('current-ist-clock').innerText = new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true });
         }
 
         initData();
         renderSettings();
+        renderDayNav();
         updateGlobalTheme();
         updateView();
 
         // Clock Update Loop
         setInterval(() => {
             document.getElementById('current-ist-clock').innerText = new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true });
-            updateGlobalTheme(); // Check theme every 10s
+            updateGlobalTheme();
         }, 10000);
-
-        // Alarm Check Loop (Every 60s)
-        setInterval(checkAlarms, 60000);
-        // Run once on load to catch immediate alarms
-        setTimeout(checkAlarms, 2000);
 
     </script>
 </body>
